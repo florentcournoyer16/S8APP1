@@ -72,7 +72,7 @@ setenv MODELS_MLM_ROOT	            $DESIGN_ROOT/models/mlm
 
 setenv VMANAGER_CONFIG_HOME         $VERIF_ROOT/vmanager
 setenv VMANAGER_REGRESSIONS_AREA    $VERIF_ROOT/regression_area
-setenv PYTHONPATH                   $VERIF_ROOT/tests:$VERIF_ROOT/core
+setenv PYTHONPATH                   $VERIF_ROOT/tests:$VERIF_ROOT/core:$VERIF_ROOT/core/cocotb_sanitycheck
 
 # Simulation command
 alias srun $VERIF_ROOT/scripts/runsim.py

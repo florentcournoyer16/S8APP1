@@ -183,10 +183,10 @@ import os
 
 def test_dff():
     run(
-        verilog_sources=[os.path.join(VERIF_ROOT, "debug", "dff.sv")],
+        verilog_sources=[os.path.join(VERIF_ROOT, "core", "cocotb_sanitycheck", "dff.sv")],
         force_compile = True,
         sim_args=[MainOptions],
-        python_search=[os.path.join(VERIF_ROOT, "debug")],
+        python_search=[os.path.join(VERIF_ROOT, "core", "cocotb_sanitycheck")],
         toplevel="dff_test",            # top level HDL
         testcase="test_dff_simple",
         module="dff_cocotb"        # name of cocotb test module
