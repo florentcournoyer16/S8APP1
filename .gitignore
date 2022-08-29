@@ -1,0 +1,8 @@
+
+.idea/
+
+cocotb-env/
+
+simdir/
+
+**/__pycache__/
