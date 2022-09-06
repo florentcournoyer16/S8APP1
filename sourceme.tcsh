@@ -50,8 +50,7 @@ source $CMC_HOME/scripts/cadence.incisive15.20.079.csh
 # analog simulator
 source $CMC_HOME/scripts/cadence.spectre19.10.162.csh
 
-# Licence patch. Replace with your local licence server name
-#echo 'lmserver-24 cadconnect.3it.usherbrooke.ca' >> ~/.hosts_local
+# Licence patch. See instructor if issue with vManager licence.
 setenv  HOSTALIASES PROJECT_ROOT/.hosts_local
 
 # Override multiple licence servers - creates delays
