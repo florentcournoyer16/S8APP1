@@ -17,7 +17,7 @@ module packet_merger #(
     SEGMENT_COUNT = TRANSMISSION_LENGTH/DATA_LENGTH,
     SEGMENT_COUNT_BITS = $clog2(SEGMENT_COUNT)-1)
     (
-    UsartInterface.rx _rx,
+    UsartInterface.rx message_if,
     input logic clk,
     input logic reset
 );
@@ -25,7 +25,7 @@ module packet_merger #(
 
     states state;
     logic [SEGMENT_COUNT_BITS:0] segmentCount;
-    UartInterface #(8) uart();
+    UartInterface #(8) uart_if();
     logic [TRANSMISSION_LENGTH-1:0] packet ;
 
     logic crc_clear_r;
@@ -33,36 +33,36 @@ module packet_merger #(
     logic [CRC_LENGTH-1:0] crc_r;
     logic crc_ready_r;
 
-    UartRx rx(uart.rx, clk, !reset);
+    UartRx rx(uart_if.rx, clk, !reset);
     CRC8 #(.DATA_LENGTH(MESSAGE_LENGTH)) crc_calc (clk, reset, packet[MESSAGE_LENGTH-1:0], crc_clear_r, crc_valid_r, crc_r, crc_ready_r);
-    assign uart.sig = _rx.sig;
+    assign uart_if.sig = message_if.sig;
 
     task FSM();
         case (state)
             IDLE: begin
-                _rx.valid <= 0;
-                uart.ready <= 0;
+                message_if.valid <= 0;
+                uart_if.ready <= 0;
                 segmentCount = 0;
                 crc_valid_r <= 0;
-                if (uart.valid) begin
+                if (uart_if.valid) begin
                     state <= RECEIVE_SEGMENTS;
                 end
             end
             RECEIVE_SEGMENTS: begin
-                if (uart.valid) begin
-                    packet[segmentCount*8 +: 8] <= uart.data; // at index segmentCount*8, insert 8 bits
-                    uart.ready <= 1;
+                if (uart_if.valid) begin
+                    packet[segmentCount*8 +: 8] <= uart_if.data; // at index segmentCount*8, insert 8 bits
+                    uart_if.ready <= 1;
                     segmentCount++;
                     state <= CHECK_COUNT;
                 end
             end
             CHECK_COUNT: begin
-                uart.ready <= 0;
+                uart_if.ready <= 0;
                 if (segmentCount < SEGMENT_COUNT) begin
                     state <= RECEIVE_SEGMENTS;
                 end else begin
-                    _rx.data <= packet[MESSAGE_LENGTH-1:0];
-                    _rx.valid <= 0;
+                    message_if.data <= packet[MESSAGE_LENGTH-1:0];
+                    message_if.valid <= 0;
                     state <= CALCULATE_CRC;
                 end
             end
@@ -74,18 +74,18 @@ module packet_merger #(
             crc_valid_r <= 0;
                 if (crc_ready_r) begin
                     crc_clear_r <= 1;
-                    _rx.valid <= (crc_r == packet[TRANSMISSION_LENGTH-1:TRANSMISSION_LENGTH-DATA_LENGTH]);
+                    message_if.valid <= (crc_r == packet[TRANSMISSION_LENGTH-1:TRANSMISSION_LENGTH-DATA_LENGTH]);
                     state <= AWAIT_ACK;
                 end
             end
 
             AWAIT_ACK: begin
                 crc_clear_r <= 0;
-                if (!_rx.valid) begin
+                if (!message_if.valid) begin
                     state <= IDLE;
                 end 
-                else if (_rx.ready) begin
-                    _rx.valid <= 0;
+                else if (message_if.ready) begin
+                    message_if.valid <= 0;
                     state <= IDLE;
                 end
             end
@@ -97,7 +97,7 @@ module packet_merger #(
             state <= IDLE;
             crc_clear_r <= 0;
             crc_valid_r <= 0;
-            uart.ready <= 0;
+            uart_if.ready <= 0;
             segmentCount = 0;
             packet <= 0;
         end else begin
@@ -105,5 +105,5 @@ module packet_merger #(
         end
     end
 
-    assign _rx.parity_error = 1'b0;
+    assign message_if.parity_error = 1'b0;
 endmodule

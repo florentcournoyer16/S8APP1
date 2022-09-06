@@ -35,7 +35,6 @@ module top #(
     /***********************************/
     
     // Top
-    logic                            test;
     logic                            led9_r;
     logic[32 :0]                     counter;
     
@@ -121,21 +120,8 @@ module top #(
     assign command_if.command = usart_man_if.command;
     assign command_if.rx_data = usart_man_if.rx_data;
 
-    // USART mapping
-    generate 
-        if (USE_USART == 1) begin
-            UsartRx usartrx_dut(._rx(rx_if.rx), .clk, .rsnt(!reset));
-            UsartTx usarttx_dut(._tx(tx_if.tx), .clk, .rsnt(!reset));
-        end else begin
-            // TODO: implement uart rx if needed, usart rx kept to keep the io after synthesis
-            //UsartRx usartrx_dut(._rx(rx_if.rx), .clk, .rsnt(!reset));
-
-
-            packet_splitter uart(tx_if.tx, clk, reset);
-
-            packet_merger  uart_merge_inst(._rx(rx_if.rx), .clk, .reset(reset));
-        end        
-    endgenerate
+    packet_splitter inst_packet_splitter(tx_if.tx, clk, reset);
+    packet_merger   inst_packet_merger(.message_if(rx_if.rx), .clk, .reset(reset));
    
     
 

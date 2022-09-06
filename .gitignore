@@ -1,8 +1,9 @@
 
-.idea/
-
 cocotb-env/
 
 simdir/
 
+.idea/
+
 **/__pycache__/
+

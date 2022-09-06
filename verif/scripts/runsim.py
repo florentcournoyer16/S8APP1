@@ -13,7 +13,7 @@ import subprocess
 parser = argparse.ArgumentParser(description='Verification environment for cocotb and VManager.')
 
 # texte
-parser.add_argument('-t', '--test', type=str, default="basic", help='String. Test name. See $VERIF_ROOT/tests for list.')
+parser.add_argument('-t', '--test', type=str, default="do_wait_only", help='String. Test name. See $VERIF_ROOT/tests for list.')
 parser.add_argument('-d', '--testdir', type=str, default="tests", help='String. Specify test subdirectory, defaults to $VERIF_ROOT/tests.')
 
 # int
@@ -201,8 +201,8 @@ def test_start():
         sim_args=[MainOptions],
         python_search=[os.path.join(VERIF_ROOT, "tests")],
         toplevel="top",            # top level HDL
-        testcase="test_basic_uart",
-        module="register_handshake"        # name of cocotb test module
+        testcase="test_" + args.test,
+        module=args.test        # name of cocotb test module
     )
 
 if args.cocotbsanity == True:
