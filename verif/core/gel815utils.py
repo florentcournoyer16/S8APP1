@@ -16,31 +16,9 @@ def gei815_print_cocotb_BinaryValue(SomeValue):
         print(item)  # decimal
     print()
 
-def old_prepare_data(command, addr, data):
-    data_sent = (command << 43) + (addr << 32) + data
-    return data_sent
-
-def gei815_prepare_data(command, addr, data):
-    data_sent = (command << 43) + (addr << 32) + data
-    return data_sent
-
-    print("payload: " + "0x{0:{width}x}".format(data, width=8))
-    print("addr: " + "0x{0:{width}x}".format(addr, width=8))
-    print("cmd: " + "0x{0:{width}x}".format(command, width=8))
-
-    msg_payload = cocotb.binary.BinaryValue(value=data, n_bits=32, bigEndian=False)
-    msg_address = cocotb.binary.BinaryValue(value=addr, n_bits=8, bigEndian=False)
-    msg_command = cocotb.binary.BinaryValue(value=command, n_bits=8, bigEndian=False)
-
-    gei815_print_cocotb_BinaryValue(msg_payload)
-    gei815_print_cocotb_BinaryValue(msg_address)
-    gei815_print_cocotb_BinaryValue(msg_command)
-
-    data_sent = msg_command.binstr + msg_address.binstr + msg_payload.binstr
-    print(data_sent)
-    msg = cocotb.binary.BinaryValue(value=data_sent, n_bits=48, bigEndian=False)
-    gei815_print_cocotb_BinaryValue(msg)
-    return msg
+def gei815_build_command_message(command, addr, data):
+    message = (command << 43) + (addr << 32) + data
+    return cocotb.binary.BinaryValue(value=message, n_bits=48, bigEndian=False)
 
 """
 CRC utility
