@@ -46,10 +46,9 @@ def gei815_calculateCRC8(data, current_crc):
     return ba2int(crc)
 
 
-def gei815_get_expected_crc(value):
+def gei815_get_expected_crc(valueArray):
     current_crc = CRC8_START
-    print(value)
-    for b in value:
+    for b in valueArray:
         current_crc = gei815_calculateCRC8(b, current_crc)
 
     return current_crc
