@@ -22,6 +22,6 @@ group example_group {
     run_mode : batch;
     run_script : $ENV(VERIF_ROOT)/scripts/do_vmanager_runsim.tcsh;
 
-    test do_wait_only {count : 1;};
-    test cocotbext_uart_demo {count : 1;};
+    test sanity {count : 1;};
+    test sanity_random {count : 10;};
 };

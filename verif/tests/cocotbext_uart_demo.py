@@ -10,8 +10,16 @@ from gel815utils import gei815_print_cocotb_BinaryValue
 async def test_cocotbext_uart_demo(dut):
     print("Uart instance demo")
 
+    # L.E5 - Ajouter l'instanciation du moniteur
+    # inst_Uart8Monitor = Monitor_VotreNomDeClasse(dut.CheminVersPacketMerger, logging=True)
+    # inst_Uart8Monitor.name = "inst_Uart8Monitor" # optionnel
+
+    # L.E6 - Ajout des moniteurs, modèles et scoreboard
+    # VerifStuff = TestbenchClass_WithOnlyScoreboard(dut, logging=True)
+    # VerifStuff.BuildVerificationComponents()
+
     # L.E4 - Ajouter l'initialisation des pattes d'entrée et de l'horloge
-    # await init(dut) # ne pas mettre à L.E3
+    # await votre_initialisation(dut) 
 
     # Driver and Sink for the dut UART RX/TX channels
     uart_driver = UartSource(dut.in_sig, baud=1000000, bits=8)
