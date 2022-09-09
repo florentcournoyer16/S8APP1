@@ -66,8 +66,8 @@ setenv CDS_LIC_FILE 6055@cadence.gegi.usherbrooke.ca:7055@cadence.gegi.usherbroo
 setenv DESIGN_ROOT	                $PROJECT_ROOT/design
 setenv VERIF_ROOT	                  $PROJECT_ROOT/verif
 setenv DUT_INST_NAME                OscilloTop
-setenv MODELS_HLM_ROOT	            $DESIGN_ROOT/models
-setenv MODELS_MLM_ROOT	            $DESIGN_ROOT/models/mlm
+setenv MODELS_HLM_ROOT	            $DESIGN_ROOT/analog/hlm
+setenv MODELS_MLM_ROOT	            $DESIGN_ROOT/analog/mlm
 
 setenv VMANAGER_CONFIG_HOME         $VERIF_ROOT/vmanager
 setenv VMANAGER_REGRESSIONS_AREA    $VERIF_ROOT/regression_area

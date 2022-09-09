@@ -165,18 +165,22 @@ module top #(
     ThresholdSetterInterface thresholdSetter();
     assign thresholdSetter.reset = reset;
     Timestamp timestamp_module(resetCyclic, clk, timestamp);
-    logic pulse;
-    pulse_generator pulser(sipms[1], clk, reset, pulse);
-    generate
-        if (USE_TDC_DUMB) begin
-            TDC_dumb #(CHAN_0) TDC1_dumb_dut(.bus(tdc1_if.internal), .clk(clk), .trigger(sipms[0]));
-            TDC_dumb #(CHAN_1) TDC2_dumb_dut(.bus(tdc2_if.internal), .clk(clk), .trigger(sipms[1]));
-        end
-        else begin
-            TDC #(.channelNumber(CHAN_0), .USE_QUAD_OSCILLATOR(USE_TDC_OSCILLATOR_CLOCK)) tdc1(.bus(tdc1_if.internal), .setter(thresholdSetter), .clk(clkMHz), .sipm(sipms[0]), .enable(TDC_en_if.enable_channels[0]), .timestamp(timestamp));
-            TDC #(.channelNumber(CHAN_1), .USE_QUAD_OSCILLATOR(USE_TDC_OSCILLATOR_CLOCK)) tdc2(.bus(tdc2_if.internal), .setter(thresholdSetter), .clk(clkMHz), .sipm(pulse), .enable(TDC_en_if.enable_channels[1]), .timestamp(timestamp));
-        end
-    endgenerate
+    logic[1 :0]                     s_busy;
+
+    TDC_dumb #(CHAN_0) TDC1_dumb_dut(
+        .bus(tdc1_if.internal),
+        .clk(clk),
+        .trigger(sipms[0]),
+        .enable_channel(TDC_en_if.enable_channels[0]),
+        .busy(s_busy[0])
+    );
+    TDC_dumb #(CHAN_1) TDC2_dumb_dut(
+        .bus(tdc2_if.internal),
+        .clk(clk),
+        .trigger(sipms[1]),
+        .enable_channel(TDC_en_if.enable_channels[1]),
+        .busy(s_busy[1])
+    );
 
     // TDC_Enable
     TDC_enable #(NUMBER_CHANNEL) TDC_enable_dut(.bus(TDC_en_if.internal), .clk(clk), .reset);

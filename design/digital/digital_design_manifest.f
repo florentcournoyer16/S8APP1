@@ -26,7 +26,7 @@ $DESIGN_ROOT/digital/USART/llm/UsartRx.sv
 
 $DESIGN_ROOT/digital/TDC/TDCInterface.sv
 $DESIGN_ROOT/digital/TDC_output_control/TDC_output_control.sv
-$DESIGN_ROOT/digital/TDC_dumb/TDC_dumb.sv
+//$DESIGN_ROOT/digital/TDC_dumb/TDC_dumb.sv
 $DESIGN_ROOT/digital/TDC/ThresholdSetterInterface.sv
 $DESIGN_ROOT/digital/TDC_enable/TDC_enable_Interface.sv
 $DESIGN_ROOT/digital/TDC_enable/TDC_enable.sv

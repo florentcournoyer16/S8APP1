@@ -94,7 +94,7 @@ if(PWD != (PROJECT_ROOT + "/simdir")) and (VMANAGER_REGRESSIONS_AREA not in PWD)
 
 # Set default manifest files
 DesignFiles="-f " + DESIGN_ROOT + "/digital/digital_design_manifest.f"
-Models= "" #"-f " + MODELS_HLM_ROOT + "/mixed_sig_modules_hlm.f"
+Models= "-f " + MODELS_HLM_ROOT + "/mixed_sig_modules_manifest.f"
 TestbenchFiles= "" #"-f " + VERIF_ROOT + "/core/tb_corefiles.f"
 
 # simvision command for waveforms.
@@ -197,7 +197,7 @@ def test_start():
     run(
         verilog_sources=[],
         force_compile = True, # fixes leaving verilog_sources empty
-        compile_args=[DesignFiles],
+        compile_args=[DesignFiles, Models],
         sim_args=[MainOptions],
         python_search=[os.path.join(VERIF_ROOT, "tests")],
         toplevel="top",            # top level HDL

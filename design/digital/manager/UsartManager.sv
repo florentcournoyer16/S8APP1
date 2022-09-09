@@ -44,7 +44,6 @@ module UsartManager
     logic                            packet_received_r;
 
     // local signals
-    logic                            data_to_send;
     message_t                        message;
 
     //always @(state, _rx_reader.valid, _tx_writer.ready) begin//: FSM_Manager, MOORE
@@ -55,8 +54,7 @@ module UsartManager
                 if(_rx_reader.valid) begin
                     rx_ready_r = 1; // Told rx that we are reading his data
                     state = STATE_READ;
-                end else if(data_to_send && _tx_writer.ready) begin
-                    data_to_send = 0;
+                end else if(_manager.send_data && _tx_writer.ready) begin
                     state = STATE_SEND;
                 end
                 data_sent_r = 0;
@@ -78,6 +76,7 @@ module UsartManager
                 // Wait for transmission to start
                 if (!_tx_writer.ready) begin
                     //tx_valid_r = 0;
+                    data_sent_r = 1;
                     state = STATE_END; 
                 end
             end
@@ -96,7 +95,7 @@ module UsartManager
                 // Wait for tx to be ready before changing state (or we could read while tx not ready)
                 if(_tx_writer.ready) begin
                     // Notify command manager that data_was sent
-                    data_sent_r = 1;
+                    data_sent_r = 0;
                     state = STATE_WAIT;
                 end
             end
@@ -120,11 +119,7 @@ module UsartManager
             data_sent_r = 0;
             packet_received_r = 0;
             message.packet = 0;
-            data_to_send = 0;
         end else begin
-            if (_manager.send_data) begin
-                data_to_send = _manager.send_data;
-            end
             FSM();
         end
     end
