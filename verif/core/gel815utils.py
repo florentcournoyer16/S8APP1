@@ -23,12 +23,10 @@ def gei815_build_command_message(command, addr, data):
 """
 CRC utility
 Usage example
-    data = prepare_data(0, 9, 0x345678)  # Reading reg at address 0
-    some_bytes = data.to_bytes(6, sys.byteorder)
-    resultingCRC = get_expected_crc(some_bytes)
-    my_bytearray = bytearray(some_bytes)
-    my_bytearray.append(resultingCRC)
-    await uart_source.write(my_bytearray)
+    SomeData = gei815_build_command_message(0, 9, 0x345678)  # Reading reg at address 0
+    resultingCRC = get_expected_crc(SomeData.buff)
+    crc_to_send = cocotb.binary.BinaryValue(value=resultingCRC, n_bits=8)
+    await uart_source.write(crc_to_send.buff)
 """
 
 CRC8_START = 0x0D
