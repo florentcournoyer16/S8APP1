@@ -51,7 +51,7 @@ source $CMC_HOME/scripts/cadence.incisive15.20.079.csh
 source $CMC_HOME/scripts/cadence.spectre19.10.162.csh
 
 # Licence patch. See instructor if issue with vManager licence.
-setenv  HOSTALIASES PROJECT_ROOT/.hosts_local
+setenv  HOSTALIASES $PROJECT_ROOT/.hosts_local
 
 # Override multiple licence servers - creates delays
 setenv CDS_LIC_FILE 6055@cadence.gegi.usherbrooke.ca:7055@cadence.gegi.usherbrooke.ca
