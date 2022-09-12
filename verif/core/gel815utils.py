@@ -25,7 +25,7 @@ CRC utility
 Usage example
     SomeData = gei815_build_command_message(0, 9, 0x345678)  # Reading reg at address 0
     resultingCRC = get_expected_crc(SomeData.buff)
-    crc_to_send = cocotb.binary.BinaryValue(value=resultingCRC, n_bits=8)
+    crc_to_send = cocotb.binary.BinaryValue(value=resultingCRC, n_bits=8, bigEndian=False)
     await uart_source.write(crc_to_send.buff)
 """
 
