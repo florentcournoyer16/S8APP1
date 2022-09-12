@@ -7,4 +7,4 @@
 # manifest file for sva modules and bindings
 ########################################################################
 
-# $VERIF_ROOT/assertions/CommonCoverage.sv
+# $VERIF_ROOT/assertions/NomFichier.sv
