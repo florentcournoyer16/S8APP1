@@ -102,11 +102,14 @@ TestbenchFiles= "" #"-f " + VERIF_ROOT + "/core/tb_corefiles.f"
 WavesScript=VERIF_ROOT + "/scripts/waves.tcl"
 
 # Coverage switches
-CoverageCommands =  " -coverage all" # code and functional coverage. ICC user guide. Also activates cover properties, so no need for -abvcoveron
-CoverageCommands += " -covfile " + VERIF_ROOT + "/scripts/coverage.tcl"
-CoverageCommands += " -covdut " + DUT_INST_NAME 	## will not capture coverage from the testbench...
-CoverageCommands += " -covoverwrite"
-CoverageCommands += " -covtest " + args.test
+
+CoverageCommands = ""
+if(args.cov == True):
+    CoverageCommands =  " -coverage u" # code and functional coverage. ICC user guide. Also activates cover properties, so no need for -abvcoveron
+    CoverageCommands += " -covfile " + VERIF_ROOT + "/scripts/coverage.tcl"
+    CoverageCommands += " -covdut " + DUT_INST_NAME 	## will not capture coverage from the testbench...
+    CoverageCommands += " -covoverwrite"
+    CoverageCommands += " -covtest " + args.test
 
 # Main xrun switches
 # 		VHDL '93 support, -v200x also possible
@@ -149,8 +152,6 @@ AssertionFiles = ""
 if(args.sva == True):
     AssertionFiles += "-f " + VERIF_ROOT + "/tb_sva_bindings.f"
 
-if(args.cov == True):
-    MainOptions += CoverageCommands
 
 ## Default: do nothing. Note: can also use -svseed, seems to change something for reporting in log...
 if(args.seed == None):
@@ -197,8 +198,8 @@ def test_start():
     run(
         verilog_sources=[],
         force_compile = True, # fixes leaving verilog_sources empty
-        compile_args=[DesignFiles, Models],
-        sim_args=[MainOptions],
+        compile_args=[DesignFiles, Models, AssertionFiles, CoverageCommands],
+        sim_args=[MainOptions, CoverageCommands],
         python_search=[os.path.join(VERIF_ROOT, "tests")],
         toplevel="top",            # top level HDL
         testcase="test_" + args.test,
