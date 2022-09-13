@@ -29,7 +29,7 @@ module TDC_enable #(parameter
     always_ff @(posedge clk) begin
         if (reset) begin
             // Put all the outputs to 0
-            fsm_state <= STATE_READ_REG;
+            fsm_state <= STATE_WAIT;
         end else begin
             case(fsm_state)
                 STATE_WAIT : begin
