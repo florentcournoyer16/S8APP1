@@ -170,6 +170,7 @@ module top #(
     TDC_dumb #(CHAN_0) TDC1_dumb_dut(
         .bus(tdc1_if.internal),
         .clk(clk),
+        .reset(reset),
         .trigger(sipms[0]),
         .enable_channel(TDC_en_if.enable_channels[0]),
         .busy(s_busy[0])
@@ -177,6 +178,7 @@ module top #(
     TDC_dumb #(CHAN_1) TDC2_dumb_dut(
         .bus(tdc2_if.internal),
         .clk(clk),
+        .reset(reset),
         .trigger(sipms[1]),
         .enable_channel(TDC_en_if.enable_channels[1]),
         .busy(s_busy[1])
