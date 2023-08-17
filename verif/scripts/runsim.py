@@ -202,7 +202,7 @@ def test_start():
         sim_args=[MainOptions, CoverageCommands],
         python_search=[os.path.join(VERIF_ROOT, "tests")],
         toplevel="top",            # top level HDL
-        testcase="test_" + args.test,
+        testcase=args.test,
         module=args.test        # name of cocotb test module
     )
 
