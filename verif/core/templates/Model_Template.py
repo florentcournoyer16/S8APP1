@@ -1,7 +1,7 @@
 import cocotb
 from cocotb.binary import BinaryValue
 from cocotb.log import SimLog
-from gel815utils import gei815_get_expected_crc
+from gei815utils import gei815_get_expected_crc
 
 # Models can be very simple, i.e. a single method (function) with
 # a single property (variable) containing the calculated/expected result

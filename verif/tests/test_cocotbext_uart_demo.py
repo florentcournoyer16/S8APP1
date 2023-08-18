@@ -2,7 +2,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Join
 from cocotbext.uart import UartSource, UartSink
-from gel815utils import gei815_print_cocotb_BinaryValue
+from gei815utils import gei815_print_cocotb_BinaryValue
 
 
 # Decorator to tell cocotb this function is a coroutine
