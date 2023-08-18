@@ -10,6 +10,60 @@ import subprocess
 #from pathlib import Path
 
 
+def CheckCocotbInstall():
+
+    import importlib.util
+
+    spam_spec = importlib.util.find_spec("cocotb")
+    found = spam_spec is not None
+    if(found != True):
+        print("Cocotb not found")
+        exit(1)
+
+    spam_spec = importlib.util.find_spec("cocotb_bus")
+    found = spam_spec is not None
+    if(found != True):
+        print("Cocotb not found")
+        exit(1)
+
+    spam_spec = importlib.util.find_spec("cocotb_test")
+    found = spam_spec is not None
+    if(found != True):
+        print("Cocotb not found")
+        exit(1)
+
+    spam_spec = importlib.util.find_spec("cocotbext.uart")
+    found = spam_spec is not None
+    if(found != True):
+        print("cocotbext.uart not found")
+        exit(1)
+
+    import cocotb
+    import cocotb_bus
+    import cocotb_test
+    import cocotbext
+
+
+    if(cocotb.__version__ != "1.6.2"):
+        print("Wrong Cocotb version, found version " + cocotb.__version__ + " and expecting 1.6.2")
+        exit(1)
+    elif(cocotb_bus.__version__ != "0.2.1"):
+        print("Wrong Cocotb_bus version, found version " + cocotb_bus.__version__ + " and expecting 0.2.1")
+        exit(1)
+    elif(cocotb_test.__version__ != "0.2.1"):
+        print("Wrong Cocotb_test version,  found version " + cocotb_test.__version__ + " and expecting 0.2.1")
+        exit(1)
+    #elif(cocotbext.uart.__version__ != "0.2.1"):
+    #    print("Wrong Cocotbext.uart version")
+    #    exit(1)
+
+    print("cocotb packages ok.")
+    #exit()
+
+
+
+CheckCocotbInstall()
+
 parser = argparse.ArgumentParser(description='Verification environment for cocotb and VManager.')
 
 # texte
@@ -46,6 +100,12 @@ MODELS_HLM_ROOT = os.environ.get('MODELS_HLM_ROOT')
 DUT_INST_NAME = os.environ.get('DUT_INST_NAME')
 
 VMANAGER_REGRESSIONS_AREA = os.environ.get('VMANAGER_REGRESSIONS_AREA')
+
+
+if not isfile(PROJECT_ROOT + "/.hosts_local"):
+    print("Licence redirection file for vmanager missing. Please recover from the git repository.")
+    print(PROJECT_ROOT + "/.hosts_local")
+    exit(1)
 
 
 if (PROJECT_ROOT == None):
@@ -95,7 +155,6 @@ if(PWD != (PROJECT_ROOT + "/simdir")) and (VMANAGER_REGRESSIONS_AREA not in PWD)
 # Set default manifest files
 DesignFiles="-f " + DESIGN_ROOT + "/digital/digital_design_manifest.f"
 Models= "-f " + MODELS_HLM_ROOT + "/mixed_sig_modules_manifest.f"
-TestbenchFiles= "" #"-f " + VERIF_ROOT + "/core/tb_corefiles.f"
 
 # simvision command for waveforms.
 # 		default saves all signals in design
@@ -158,22 +217,6 @@ if(args.seed == None):
     MainOptions += " -seed random"
 else:
     MainOptions += (" -seed " + args.seed)
-
-
-# Method 1 : directly do command line stuff
-#CocotbLib = subprocess.run(['cocotb-config', '--lib-name-path', 'vpi', 'xcelium'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-#MainOptions += " -define COCOTB_SIM=1"
-#MainOptions += " -ACCESS +rwc" +
-#MainOptions += " -top top"
-#MainOptions += " -loadvpi " + CocotbLib + ":vlog_startup_routines_bootstrap -plinowarn "
-#os.environ.setdefault('MODULE', 'register_handshake')
-#os.environ.setdefault('TOPLEVEL', 'top')
-#os.environ.setdefault('TESTCASE', 'test_basic_uart')
-# directly show stdout/stderr in console
-#command = ["irun", MainOptions, Models, DesignFiles, TestbenchFiles, AssertionFiles]
-#print(command)
-#subprocess.run(command)
-#exit(0)
 
 
 # Method 2 Use cocotb_test with force to true
