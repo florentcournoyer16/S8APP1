@@ -47,7 +47,7 @@ def CheckCocotbInstall():
     if(cocotb.__version__ != "1.6.2"):
         print("Wrong Cocotb version, found version " + cocotb.__version__ + " and expecting 1.6.2")
         exit(1)
-    elif(cocotb_bus.__version__ != "0.2.1"):
+    elif(cocotb_bus.__version__ != "0.1.1"):
         print("Wrong Cocotb_bus version, found version " + cocotb_bus.__version__ + " and expecting 0.2.1")
         exit(1)
     elif(cocotb_test.__version__ != "0.2.1"):
@@ -56,8 +56,8 @@ def CheckCocotbInstall():
     #elif(cocotbext.uart.__version__ != "0.2.1"):
     #    print("Wrong Cocotbext.uart version")
     #    exit(1)
-
-    print("cocotb packages ok.")
+    else:
+        print("cocotb packages ok.")
     #exit()
 
 
