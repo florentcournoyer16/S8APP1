@@ -7,4 +7,6 @@
 # manifest file for sva modules and bindings
 ########################################################################
 
-# $VERIF_ROOT/assertions/NomFichier.sv
+$VERIF_ROOT/assertions/PacketMergerCoverage.sv
+$VERIF_ROOT/assertions/RegisterCoverage.sv
+$VERIF_ROOT/assertions/TDCCoverage.sv
