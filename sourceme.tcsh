@@ -15,40 +15,27 @@
 # set environment working copy root
 setenv PROJECT_ROOT                 $PWD
 
-if ( -f "/opt/pycharm-2021.1.3/bin/pycharm.sh" ) then
-    # use lab workstation local installation
-    alias pycharm /opt/pycharm-2021.1.3/bin/pycharm.sh
-else
-    echo "default pycharm not found for lab setup, please ensure the shell"
-    echo "with the which command or specify your own alias"
-endif
-
-# load cocotb, from virtual environment (
-if ( -f "$PROJECT_ROOT/cocotb-env/bin/activate.csh" ) then
-    source $PROJECT_ROOT/cocotb-env/bin/activate.csh
-else
-    echo "Please generate the python3 cocotb environment, for example using Pycharm"
-    echo "For the moment, this is not included in the installation image."
-endif
 
 ################################################################
 # Load Cadence tools
 ################################################################
 # Xcellium, very recent Cadence simulator package
-#setenv SIM    xcelium
-#source $CMC_HOME/scripts/cadence.xceliummain21.09.003.csh
-#source $CMC_HOME/scripts/cadence.vmanagermain21.09.002.csh
+setenv SIM    xcelium
+
+if( $?CMC_HOME == 0) then
+        setenv CMC_HOME /CMC
+endif
+
+source $CMC_HOME/scripts/cadence.2014.12.csh
+
+setenv CMC_CDS_XCELIUM_ARCH ${CMC_CDS_ARCH}
+setenv CMC_CDS_XCELIUM_HOME ${CDS_TOP_DIR}/XCELIUMMAIN23.09.006_${CMC_CDS_XCELIUM_ARCH}
+
+setenv PATH ${CMC_CDS_XCELIUM_HOME}/bin:${PATH}
+setenv PATH ${CMC_CDS_XCELIUM_HOME}/tools.lnx86/bin:${PATH}
+
 ##In order to enable coverage analysis, please set the environment variable MDV_XLM_HOME to point to the XCELIUM$
-#setenv MDV_XLM_HOME $CMC_CDS_XCELIUM_HOME
-## for vmanager administration/server mode setup tools
-#setenv PATH $CMC_CDS_VMANAGERMAIN_HOME/vmgr/admin:$PATH
-
-# Incisive setting, older but compatible simulator package
-setenv SIM    ius
-source $CMC_HOME/scripts/cadence.incisive15.20.079.csh
-
-# analog simulator
-source $CMC_HOME/scripts/cadence.spectre19.10.162.csh
+setenv MDV_XLM_HOME $CMC_CDS_XCELIUM_HOME
 
 # Licence patch. See instructor if issue with vManager licence.
 setenv  HOSTALIASES $PROJECT_ROOT/.hosts_local
@@ -57,6 +44,19 @@ setenv  HOSTALIASES $PROJECT_ROOT/.hosts_local
 setenv CDS_LIC_FILE 6055@cadence.gegi.usherbrooke.ca:7055@cadence.gegi.usherbrooke.ca
 ################################################################
 
+
+
+################################################################
+# Create shortcut for Pycharm
+################################################################
+
+if ( -f "/opt/pycharm-2024/bin/pycharm.sh" ) then
+    # use lab workstation local installation
+    alias pycharm /opt/pycharm-2024/bin/pycharm.sh
+else
+    echo "Installation locale de Pycharm non disponible"
+    echo "Utilisez l'éditeur de votre choix."
+endif
 
 ################################################################
 # Verification environment local setup
@@ -79,7 +79,7 @@ alias srun $VERIF_ROOT/scripts/runsim.py
 # Vmanager in standalone mode
 # with GUI
 alias vmanager \vmanager -cs -64 -gui -local $VERIF_ROOT/vmgr_db
-alias vplanner \vplanner -standalone $VERIF_ROOT/vmgr_db
+#alias vplanner \vplanner -standalone $VERIF_ROOT/vmgr_db
 
 # command line mode, for operation on headless cluster
 #alias cmanager \vmanager -cs -64 -batch -local $VERIF_ROOT/vmgr_db

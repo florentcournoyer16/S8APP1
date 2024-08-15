@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
+
 ## Standard Packages
-from sys import argv, exit, stdout, stderr
+from sys import exit
+
 import argparse
 import os
-from os.path import isfile, join
-import textwrap
-import subprocess
-#from pathlib import Path
+from os.path import isfile
+
 
 
 def CheckCocotbInstall():
@@ -44,20 +44,21 @@ def CheckCocotbInstall():
     import cocotbext
 
 
-    if(cocotb.__version__ != "1.6.2"):
+    if(cocotb.__version__ != "1.9.0"):
         print("Wrong Cocotb version, found version " + cocotb.__version__ + " and expecting 1.6.2")
         exit(1)
-    elif(cocotb_bus.__version__ != "0.1.1"):
+    elif(cocotb_bus.__version__ != "0.2.1"):
         print("Wrong Cocotb_bus version, found version " + cocotb_bus.__version__ + " and expecting 0.2.1")
         exit(1)
-    elif(cocotb_test.__version__ != "0.2.1"):
+    elif(cocotb_test.__version__ != "0.2.5"):
         print("Wrong Cocotb_test version,  found version " + cocotb_test.__version__ + " and expecting 0.2.1")
         exit(1)
-    #elif(cocotbext.uart.__version__ != "0.2.1"):
+    # no version number in module, skip.
+    #elif(cocotbext.verson.__version__ != "0.1.2"):
     #    print("Wrong Cocotbext.uart version")
     #    exit(1)
-    else:
-        print("cocotb packages ok.")
+
+    print("cocotb packages ok.")
     #exit()
 
 
@@ -81,6 +82,7 @@ parser.add_argument('-b', '--batch', help="Bool Switch. Batch mode, no gui", act
 parser.add_argument('--sva', help="Bool Switch. Include SystemVerilog Assertions bindings.", action="store_true")
 parser.add_argument('-c', '--cov', help="Bool Switch. Enable functional coverage collection.", action="store_true")
 parser.add_argument('--cocotb-sanity-check', dest='cocotbsanity', help="Bool Switch. Run cocotb sanity check.", action="store_true")
+parser.add_argument('-p', '--pycharm-debug', dest='pydebug', help="Bool Switch. Enable Python interactive debug or not.", action="store_true")
 
 
 # parser.add_argument('integers', metavar='N', type=int, nargs='+',
@@ -100,6 +102,10 @@ MODELS_HLM_ROOT = os.environ.get('MODELS_HLM_ROOT')
 DUT_INST_NAME = os.environ.get('DUT_INST_NAME')
 
 VMANAGER_REGRESSIONS_AREA = os.environ.get('VMANAGER_REGRESSIONS_AREA')
+
+
+if(args.pydebug == True):
+    os.environ["PYCHARMDEBUG"] = "enabled"
 
 
 if not isfile(PROJECT_ROOT + "/.hosts_local"):
@@ -133,23 +139,6 @@ if(PWD != (PROJECT_ROOT + "/simdir")) and (VMANAGER_REGRESSIONS_AREA not in PWD)
     os.chdir(PROJECT_ROOT + "/simdir")
     print("Now in " + os.getcwd())
 
-    #exit(1)
-
-
-
-##### Ensure test file exists
-###TestPath = join(VERIF_ROOT, args.testdir, args.test + ".sv")
-###if not isfile(TestPath):
-###    print("Cannot find test")
-###    exit(1)
-###
-###command = ["ln", "-s", "-f", TestPath, join(PWD, "current_test.sv")]
-###try:
-###    response = subprocess.check_output(command, timeout=10)
-###except:
-###    ## timeout
-###    print("Error on test simlink creation.")
-###    exit(1)
 
 
 # Set default manifest files
