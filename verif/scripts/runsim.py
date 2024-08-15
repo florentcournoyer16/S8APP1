@@ -68,7 +68,7 @@ CheckCocotbInstall()
 parser = argparse.ArgumentParser(description='Verification environment for cocotb and VManager.')
 
 # texte
-parser.add_argument('-t', '--test', type=str, default="test_do_wait_only", help='String. Test name. See $VERIF_ROOT/tests for list.')
+parser.add_argument('-t', '--test', type=str, default="do_wait_only", help='String. Test name. See $VERIF_ROOT/tests for list.')
 parser.add_argument('-d', '--testdir', type=str, default="tests", help='String. Specify test subdirectory, defaults to $VERIF_ROOT/tests.')
 
 # int

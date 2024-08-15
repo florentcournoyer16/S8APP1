@@ -5,7 +5,7 @@ from bitarray.util import int2ba, ba2int
 
 
 # Expects cocotb.binary.BinaryValue() argument
-def gei815_print_cocotb_BinaryValue(SomeValue):
+def print_cocotb_BinaryValue(SomeValue):
     print("print Cocotb binary string : " + SomeValue.binstr)
     print("print Cocotb integer       : " + "{}".format(SomeValue.integer))
     print("print Cocotb integer in hex: " + "0x{0:{width}x}".format(SomeValue.integer, width=8))
@@ -29,7 +29,7 @@ CRC_POLY = 0xC6
 CRC calculator, using past cumulative CRC (current_crc) and next bye (data).
 One byte per function call.
 """
-def gei815_calculateCRC8_singleCycle(data, current_crc):
+def calculateCRC8_singleCycle(data, current_crc):
     crc = int2ba(current_crc, 8)
     data_bits = int2ba(data, 8)
     poly = int2ba(CRC_POLY, 8)
@@ -53,7 +53,7 @@ Usage example
     # write to UART driver
     await uart_source.write(crc_to_send.buff)
 """
-def gei815_get_expected_crc(valueArray):
+def get_expected_crc(valueArray):
     current_crc = CRC8_START
     for b in valueArray:
         current_crc = gei815_calculateCRC8_singleCycle(b, current_crc)

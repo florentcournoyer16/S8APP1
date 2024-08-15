@@ -2,12 +2,12 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Join
 from cocotbext.uart import UartSource, UartSink
-from gei815utils import gei815_print_cocotb_BinaryValue
+from utilsVerif import print_cocotb_BinaryValue
 
 
 # Decorator to tell cocotb this function is a coroutine
 @cocotb.test()
-async def test_cocotbext_uart_demo(dut):
+async def cocotbext_uart_demo(dut):
     print("Uart instance demo")
 
     # L.E5 - Ajouter l'instanciation du moniteur

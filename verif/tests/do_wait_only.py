@@ -3,7 +3,7 @@ from cocotb.clock import Clock
 
 # Decorator to tell cocotb this function is a coroutine
 @cocotb.test()
-async def test_do_wait_only(dut):
+async def do_wait_only(dut):
     print("Starting test_do_wait_only")
 
     # set a signal to some value
