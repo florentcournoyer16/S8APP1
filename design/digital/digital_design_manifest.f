@@ -12,6 +12,7 @@ $DESIGN_ROOT/digital/shared/mux.sv
 $DESIGN_ROOT/digital/shared/counter.sv
 $DESIGN_ROOT/digital/shared/DFF.sv
 $DESIGN_ROOT/digital/shared/CRC8.sv
+$DESIGN_ROOT/digital/shared/CRC8_gei816.sv
 
 
 $DESIGN_ROOT/digital/UART/UartInterface.sv

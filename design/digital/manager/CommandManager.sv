@@ -110,23 +110,19 @@ module CommandManager
             end
             
             STATE_READ_EVENTS : begin
+                fifo_wrapper.data = fifo.o_data;
+                
+                // Data type
+                message.write.data_type = send_events;
+                // Packet number
+                message.write.packet_number = msg_counter;
+                // Channel
+                message.write.channel = fifo_wrapper.FIFO.channel;
+                // Data to send (ToT and timestamp)
+                message.write.data = msg_counter == 0 ? fifo_wrapper.FIFO.ToT : fifo_wrapper.FIFO.timestamp;
 
-
-                if(!_manager.data_sent) begin
-                    fifo_wrapper.data = fifo.o_data;
-
-                    // Data type
-                    message.write.data_type = send_events;
-                    // Packet number
-                    message.write.packet_number = msg_counter;
-                    // Channel
-                    message.write.channel = fifo_wrapper.FIFO.channel;
-                    // Data to send (ToT and timestamp)
-                    message.write.data = msg_counter == 0 ? fifo_wrapper.FIFO.ToT : fifo_wrapper.FIFO.timestamp;
-
-                    send_data_r = 1;
-                    state = STATE_WAIT_CONFIRMATION_EVENT;
-                end
+                send_data_r = 1;
+                state = STATE_WAIT_CONFIRMATION_EVENT;
 
             end
             
