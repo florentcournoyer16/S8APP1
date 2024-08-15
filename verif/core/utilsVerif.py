@@ -16,7 +16,7 @@ def print_cocotb_BinaryValue(SomeValue):
         print(item)  # decimal
     print()
 
-def gei815_build_command_message(command, addr, data):
+def build_command_message(command, addr, data):
     message = (command << 43) + (addr << 32) + data
     return cocotb.binary.BinaryValue(value=message, n_bits=48, bigEndian=False)
 

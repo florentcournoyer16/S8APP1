@@ -16,7 +16,7 @@ async def do_wait_only(dut):
     print(type(fetch_value))
 
     # start a clock signal
-    cocotb.fork(Clock(dut.clk, 75, units='ns').start())
+    await cocotb.start(Clock(dut.clk, 75, units='ns').start())
 
     # wait for 1000 clock periods
     await cocotb.triggers.ClockCycles(dut.clk, 1000, rising=True)
