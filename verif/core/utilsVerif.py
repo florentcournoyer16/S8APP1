@@ -45,9 +45,9 @@ CRC utility
 Calculates CRC from n-byte packet.
 Usage example
     # Build some n-byte string, for example a read command
-    SomeData = gei815_build_command_message(0, 4, 0x345678)  # Reading reg at address 0
+    SomeData = build_command_message(0, 4, 0x345678)  # Reading reg at address 0
     # Calculate its CRC
-    resultingCRC = gei815_get_expected_crc(SomeData.buff)
+    resultingCRC = get_expected_crc(SomeData.buff)
     # Convert to cocotb format
     crc_to_send = cocotb.binary.BinaryValue(value=resultingCRC, n_bits=8, bigEndian=False)
     # write to UART driver
