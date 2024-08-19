@@ -1,10 +1,22 @@
 import cocotb
 from cocotb.clock import Clock
 
+import os
+
+import pydevd_pycharm
+
+
 # Decorator to tell cocotb this function is a coroutine
 @cocotb.test()
 async def do_wait_only(dut):
     print("Starting test_do_wait_only")
+
+    PYCHARMDEBUG = os.environ.get('PYCHARMDEBUG')
+
+    print(PYCHARMDEBUG)
+
+    if(PYCHARMDEBUG == "enabled"):
+        pydevd_pycharm.settrace('localhost', port=9090, stdoutToServer=True, stderrToServer=True)
 
     # set a signal to some value
     dut.reset.value = 1
