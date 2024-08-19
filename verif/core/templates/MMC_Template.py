@@ -94,26 +94,26 @@ class MMC_Template:
             datas=dict(SignalC=self.dut.o_SignalC, SignalD=self.dut.o_SignalD)
         )
 
-        self._checker = None
+        self._checkercoro = None
 
         self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
 
     def start(self) -> None:
         """Starts monitors, model, and checker coroutine"""
-        if self._checker is not None:
+        if self._checkercoro is not None:
             raise RuntimeError("Monitor already started")
         self.input_mon.start()
         self.output_mon.start()
-        self._checker = cocotb.start_soon(self._check())
+        self._checkercoro = cocotb.start_soon(self._check())
 
     def stop(self) -> None:
         """Stops everything"""
-        if self._checker is None:
+        if self._checkercoro is None:
             raise RuntimeError("Monitor never started")
         self.input_mon.stop()
         self.output_mon.stop()
-        self._checker.kill()
-        self._checker = None
+        self._checkercoro.kill()
+        self._checkercoro = None
 
     # Model expects list of ints as inputs, returns a list of ints
     # modifiy as needed.
