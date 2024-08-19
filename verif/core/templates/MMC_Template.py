@@ -67,7 +67,11 @@ class DataValidMonitor_Template:
 
         Return value is what is stored in queue. Meant to be overriden by the user.
         """
+        # possible messages to test monitor
         self.log.info("use this to print some information at info level")
+        #self.log.info({name: handle.value for name, handle in self._datas.items()})
+
+
         # for loop going through all the values in the signals to sample (see constructor)
         return {name: handle.value for name, handle in self._datas.items()}
 
@@ -129,7 +133,8 @@ class MMC_Template:
     # This example might not work every time.
     async def _checker(self) -> None:
         while True:
-            pass # initially do nothing
+            # dummy await, allows to run without checker implementation and verify monitors
+            await cocotb.triggers.ClockCycles(self.dut.clk, 1000, rising=True)
             """
             actual = await self.output_mon.values.get()
             expected_inputs = await self.input_mon.values.get()
