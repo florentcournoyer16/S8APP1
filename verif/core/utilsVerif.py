@@ -56,6 +56,6 @@ Usage example
 def get_expected_crc(valueArray):
     current_crc = CRC8_START
     for b in valueArray:
-        current_crc = gei815_calculateCRC8_singleCycle(b, current_crc)
+        current_crc = calculateCRC8_singleCycle(b, current_crc)
 
     return current_crc
