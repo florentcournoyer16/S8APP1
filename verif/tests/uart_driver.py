@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from cocotbext.uart import UartSource, UartSink
 from cocotb.handle import ModifiableObject, HierarchyObject
 from typing import Tuple, Optional
@@ -18,7 +19,7 @@ class UartDriver:
         uart_config: UartConfig,
     ):
         self.uart_config = uart_config
-        self._uart_driver: Optional[UartSource] = None
+        self._uart_source: Optional[UartSource] = None
         self._uart_sink: Optional[UartSink] = None
         self._dut_clk: Optional[Clock] = None
 
@@ -35,16 +36,16 @@ class UartDriver:
         self._uart_config = uart_config
 
     @property
-    def uart_driver(self) -> UartConfig:
-        if self._uart_driver is None:
+    def uart_source(self) -> UartConfig:
+        if self._uart_source is None:
             raise ValueError("property uart_driver is not initialized")
-        return self._uart_driver
+        return self._uart_source
 
-    @uart_driver.setter
-    def uart_driver(self, uart_driver):
-        if not isinstance(uart_driver, UartDriver):
+    @uart_source.setter
+    def uart_source(self, uart_source):
+        if not isinstance(uart_source, UartSource):
             raise ValueError("property uart_driver must be of type UartDriver")
-        self._uart_driver = uart_driver
+        self._uart_source = uart_source
 
     @property
     def uart_sink(self) -> UartSink:
@@ -75,13 +76,13 @@ class UartDriver:
         self._dut_clk = dut_clk
 
     def attach(self, in_sig: ModifiableObject, out_sig: ModifiableObject, clk: Clock):
-        self.uart_driver = UartSource(
-            signal=in_sig,
+        self.uart_source = UartSource(
+            data=in_sig,
             baud=self.uart_config.baud_rate,
             bits=self.uart_config.packet_size,
         )
         self.uart_sink = UartSink(
-            signal=out_sig,
+            data=out_sig,
             baud=self.uart_config.baud_rate,
             bits=self.uart_config.packet_size,
         )

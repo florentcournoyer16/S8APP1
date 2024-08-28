@@ -1,6 +1,7 @@
 import cocotb
 from cocotb.clock import Clock
-
+from test_interface import TestInterface, DutConfig
+from uart_driver import UartConfig
 import os
 
 import pydevd_pycharm
@@ -42,3 +43,10 @@ async def my_test(dut):
     for i in range(0, 8):
         dut.in_sig.value = message[i]
         await cocotb.triggers.ClockCycles(dut.clk, 100, rising=True)
+
+    medut_config = DutConfig()
+    meuart_config = UartConfig()
+
+    metest = TestInterface(medut_config, meuart_config)
+    metest.run(dut)
+

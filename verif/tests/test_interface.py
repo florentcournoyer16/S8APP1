@@ -1,26 +1,26 @@
 import pydevd_pycharm
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Union, List, Optional
 from logging import Logger
 from os import environ
-
+from cocotbext.uart import UartSource, UartSink
 from cocotb import test
 from cocotb.clock import Clock
 from cocotb.handle import ModifiableObject, HierarchyObject
 from cocotb.log import SimLog
-from verif.tests.uart_driver import UartDriver, UartConfig
+from uart_driver import UartDriver, UartConfig
 
 
 @dataclass
 class DutConfig:
     reset: int = 0
-    clk: Clock = 10
+    clk: int = 10
     clk_units = "ns"
     in_sig: int = 0
     reset_cyclic: int = 0
-    sipms: List[2] = [0, 0]
-    clk_MHz: int = 100
+    sipms: List[int] = field(default_factory=lambda: [0, 0])
+    clk_MHz: bool = 0
 
 
 class TestInterface:
@@ -48,8 +48,8 @@ class TestInterface:
         return self._uart_driver
 
     @uart_driver.setter
-    def uart_config(self, uart_driver: UartConfig) -> None:
-        if not isinstance(uart_driver, UartConfig):
+    def uart_driver(self, uart_driver: UartDriver) -> None:
+        if not isinstance(uart_driver, UartDriver):
             raise ValueError("property uart_config must be of type UartConfig")
         self._uart_driver = uart_driver
 
@@ -65,9 +65,9 @@ class TestInterface:
 
     def build_env(self, dut: HierarchyObject):
         dut.in_sig.value = self.dut_config.in_sig
-        dut.resetCyclic.value = self.dut_config.resetCyclic
+        dut.resetCyclic.value = self.dut_config.reset_cyclic
         dut.sipms.integer = self.dut_config.sipms
-        dut.clkMHz.value = self.dut_config.clkMhz
+        dut.clkMHz.value = self.dut_config.clk_MHz
         self.uart_driver.attach(dut.in_sig, dut.out_sig, dut.clk)
 
     def reset(self) -> None:
@@ -76,16 +76,14 @@ class TestInterface:
     def load_config(self) -> None:
         pass
 
-    @test
+#    @test
     def run(self, dut: HierarchyObject):
         self.gen_config()
         self.build_env(dut)
         self.test()
 
     def test(self):
-        raise NotImplementedError("override this test in daughter class")
+        pass
+        #self._logger.info(f"property {self.uart_driver._uart_sink.__} must be of type {type(UartSink)}")
+        #raise NotImplementedError("override this test in daughter class")
 
-
-uart_config = UartConfig(baud_rate=1000)
-
-mytest = TestInterface()
