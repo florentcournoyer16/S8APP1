@@ -6,11 +6,9 @@
 from typing import Any, Dict, List
 
 import cocotb
-from cocotb.binary import BinaryValue
 from cocotb.clock import Clock
 from cocotb.handle import SimHandleBase
 from cocotb.queue import Queue
-from cocotb.runner import get_runner
 from cocotb.triggers import RisingEdge
 from cocotb.log import SimLog
 
@@ -29,8 +27,8 @@ class DataValidMonitor_Template:
     ):
         self.values = Queue[Dict[str, int]]()
         self._clk = clk
-        self._datas = datas
         self._valid = valid
+        self._datas = datas
         self._coro = None # is monitor running? False if "None"
 
         self.log = SimLog("cocotb.Monitor.%s" % (type(self).__qualname__))
@@ -54,8 +52,6 @@ class DataValidMonitor_Template:
             await RisingEdge(self._clk)
             # this condition decides when to record the signal states
             if self._valid.value.binstr != "1":
-                # wait until valid is asserted, instead of checking every clock cycle.
-                await RisingEdge(self._valid)
                 # skip whatever comes after, and start the while loop again
                 continue
             # store the samples, as formatted by the _sample method
@@ -71,7 +67,6 @@ class DataValidMonitor_Template:
         self.log.info("use this to print some information at info level")
         #self.log.info({name: handle.value for name, handle in self._datas.items()})
 
-
         # for loop going through all the values in the signals to sample (see constructor)
         return {name: handle.value for name, handle in self._datas.items()}
 
@@ -85,22 +80,24 @@ class MMC_Template:
 
     def __init__(self, logicblock_instance: SimHandleBase):
         self.dut = logicblock_instance
+        self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
 
         self.input_mon = DataValidMonitor_Template(
             clk=self.dut.clk_i,
             valid=self.dut.valid,
-            datas=dict(SignalA=self.dut.i_SignalA, SignalB=self.dut.i_SignalB),
+            datas=dict(SignalA=self.dut.i_SignalA,
+                       SignalB=self.dut.i_SignalB),
         )
 
         self.output_mon = DataValidMonitor_Template(
             clk=self.dut.clk_i,
             valid=self.dut.done,
-            datas=dict(SignalC=self.dut.o_SignalC, SignalD=self.dut.o_SignalD)
+            datas=dict(SignalC=self.dut.o_SignalC,
+                       SignalD=self.dut.o_SignalD)
         )
 
         self._checkercoro = None
 
-        self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
 
     def start(self) -> None:
         """Starts monitors, model, and checker coroutine"""
@@ -108,7 +105,7 @@ class MMC_Template:
             raise RuntimeError("Monitor already started")
         self.input_mon.start()
         self.output_mon.start()
-        self._checkercoro = cocotb.start_soon(self._check())
+        self._checkercoro = cocotb.start_soon(self._checker())
 
     def stop(self) -> None:
         """Stops everything"""
@@ -119,13 +116,10 @@ class MMC_Template:
         self._checkercoro.kill()
         self._checkercoro = None
 
-    # Model expects list of ints as inputs, returns a list of ints
-    # modifiy as needed.
-    def model(self, InputsA: List[int], InputsB: List[int]) -> List[int]:
+    # Model, modify as needed.
+    def model(self, echantillons):
         # equivalent model to HDL code
-        model_result1 = 0
-        model_result2 = 1
-        return [model_result1, model_result2]
+        return False
 
 
     # Insert logic to decide when to check the model against the HDL result.
@@ -136,14 +130,27 @@ class MMC_Template:
             # dummy await, allows to run without checker implementation and verify monitors
             await cocotb.triggers.ClockCycles(self.dut.clk, 1000, rising=True)
             """
-            actual = await self.output_mon.values.get()
-            expected_inputs = await self.input_mon.values.get()
-            expected = self.model(
-                InputsA=expected_inputs["SignalA"], InputsB=expected_inputs["SignalB"]
-            )
+            Récupérer toutes les valeurs dans une Queue:
+                                SamplesList = []
+                                    while(not self.mon.values.empty()):
+                                        SamplesList.append(self.mon.values.get_nowait())
+            
+            Prendre la valeur d'un signal, au nième élément seulement
+            SamplesList[N]["NomDictionnaire"]
+            
+            Prendre la valeur d'un signal, au nième élément, et changer son type pour un entier
+            SamplesList[N]["NomDictionnaire"].integer
+                                        
+            Extraire toutes les valeurs d'un signal d'une telle liste:
+            SignalSamples = [d['NomSignal'] for d in SamplesList]
+            --> depuis https://stackoverflow.com/questions/7271482/getting-a-list-of-values-from-a-list-of-dicts
+            
+            Même chose, mais en changeant aussi les valeur d'un bus pour des entiers
+            ValueList = [d['NomSignal'].integer for d in expected_inputs]
+            
+            Lire une valeur dès que disponible, attendre sinon
+            actual = await self.mon.values.get()
 
-            # compare expected with actual using assertions. Exact indexing must
-            # be adapted to specific case and model return value
-            assert actual["SignalC"] == expected[0]
-            assert actual["SignalD"] == expected[1]
+            # compare expected with actual using assertions. 
+            assert actual["SignalC"] == expected
             """
