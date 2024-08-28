@@ -42,4 +42,3 @@ async def my_test(dut):
     for i in range(0, 8):
         dut.in_sig.value = message[i]
         await cocotb.triggers.ClockCycles(dut.clk, 100, rising=True)
-

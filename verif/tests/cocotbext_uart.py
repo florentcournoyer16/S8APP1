@@ -132,5 +132,3 @@ async def wait_reply(dut, uart_sink):
         print("After a wait of " + str(x) + "000 clocks, received message: ", end='')
         print("0x{0:0{width}x}".format(message.integer, width=12))
         return message
-
-
