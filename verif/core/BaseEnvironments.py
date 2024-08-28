@@ -9,7 +9,7 @@ from cocotb import test
 from cocotb.clock import Clock
 from cocotb.handle import ModifiableObject, HierarchyObject
 from cocotb.log import SimLog
-from uart_driver import UartDriver, UartConfig
+from uart_agent import UartAgent, UartConfig
 
 
 @dataclass
@@ -24,10 +24,13 @@ class DutConfig:
 
 
 class TestInterface:
-    def __init__(self, dut_config: DutConfig, uart_config: UartConfig):
-        self._logger: Logger = SimLog("cocotb.Test")
+    def __init__(
+        self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig
+    ):
+        self.__logger__: Logger = SimLog("cocotb.Test")
+        self.__dut__: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
-        self.uart_driver: UartDriver = UartDriver(uart_config)
+        self.uart_agent: UartAgent = UartAgent(uart_config)
 
     @property
     def dut_config(self) -> DutConfig:
@@ -42,33 +45,35 @@ class TestInterface:
         self._dut_config = dut_config
 
     @property
-    def uart_driver(self) -> UartDriver:
-        if self._uart_driver is None:
-            raise ValueError("property uart_config is not initialized")
-        return self._uart_driver
+    def uart_agent(self) -> UartAgent:
+        if self._uart_agent is None:
+            raise ValueError("property uart_agent is not initialized")
+        return self._uart_agent
 
-    @uart_driver.setter
-    def uart_driver(self, uart_driver: UartDriver) -> None:
-        if not isinstance(uart_driver, UartDriver):
-            raise ValueError("property uart_config must be of type UartConfig")
-        self._uart_driver = uart_driver
+    @uart_agent.setter
+    def uart_agent(self, uart_agent: UartAgent) -> None:
+        if not isinstance(uart_agent, UartAgent):
+            raise ValueError("property uart_agent must be of type UartAgent")
+        self._uart_agent = uart_agent
 
     def gen_config(self):
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
-        self._logger.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
+        self.__logger__.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
         if PYCHARMDEBUG == "enabled":
             pydevd_pycharm.settrace(
                 "localhost", port=50100, stdoutToServer=True, stderrToServer=True
             )
-            self._logger.info("DEBUGGER ENTRY POINT")
-        self._logger.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
+            self.__logger__.info("DEBUGGER ENTRY POINT")
+        self.__logger__.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
 
-    def build_env(self, dut: HierarchyObject):
-        dut.in_sig.value = self.dut_config.in_sig
-        dut.resetCyclic.value = self.dut_config.reset_cyclic
-        dut.sipms.integer = self.dut_config.sipms
-        dut.clkMHz.value = self.dut_config.clk_MHz
-        self.uart_driver.attach(dut.in_sig, dut.out_sig, dut.clk)
+    def build_env(self):
+        self.__dut__.in_sig.value = self.dut_config.in_sig
+        self.__dut__.resetCyclic.value = self.dut_config.reset_cyclic
+        self.__dut__.sipms.integer = self.dut_config.sipms
+        self.__dut__.clkMHz.value = self.dut_config.clk_MHz
+        self.uart_agent.attach(
+            self.__dut__.in_sig, self.__dut__.out_sig, self.__dut__.clk
+        )
 
     def reset(self) -> None:
         pass
@@ -76,14 +81,10 @@ class TestInterface:
     def load_config(self) -> None:
         pass
 
-#    @test
-    def run(self, dut: HierarchyObject):
+    def run(self):
         self.gen_config()
-        self.build_env(dut)
+        self.build_env()
         self.test()
 
     def test(self):
-        pass
-        #self._logger.info(f"property {self.uart_driver._uart_sink.__} must be of type {type(UartSink)}")
-        #raise NotImplementedError("override this test in daughter class")
-
+        raise NotImplementedError("override this test in daughter class")

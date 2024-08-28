@@ -12,16 +12,15 @@ class UartConfig:
     endian: bool = False
 
 
-# TODO: RENAME FOR UARTAGENT ???
-class UartDriver:
+class UartAgent:
     def __init__(
         self,
         uart_config: UartConfig,
     ):
         self.uart_config = uart_config
-        self._uart_source: Optional[UartSource] = None
-        self._uart_sink: Optional[UartSink] = None
-        self._dut_clk: Optional[Clock] = None
+        self.uart_source: Optional[UartSource] = None
+        self.uart_sink: Optional[UartSink] = None
+        self.dut_clk: Optional[Clock] = None
 
     @property
     def uart_config(self) -> UartConfig:
@@ -38,13 +37,13 @@ class UartDriver:
     @property
     def uart_source(self) -> UartConfig:
         if self._uart_source is None:
-            raise ValueError("property uart_driver is not initialized")
+            raise ValueError("property uart_source is not initialized")
         return self._uart_source
 
     @uart_source.setter
     def uart_source(self, uart_source):
         if not isinstance(uart_source, UartSource):
-            raise ValueError("property uart_driver must be of type UartDriver")
+            raise ValueError("property uart_source must be of type UartSource")
         self._uart_source = uart_source
 
     @property
@@ -56,23 +55,19 @@ class UartDriver:
     @uart_sink.setter
     def uart_sink(self, uart_sink):
         if not isinstance(uart_sink, UartSink):
-            raise ValueError(
-                f"property {self._uart_sink.__name__} must be of type {type(UartSink)}"
-            )
+            raise ValueError("property uart_sink must be of type UartSink")
         self._uart_sink = uart_sink
 
     @property
     def dut_clk(self) -> Clock:
         if self._dut_clk is None:
-            raise ValueError(f"property {self._dut_clk.__name__} is not initialized")
+            raise ValueError("property dut_clk is not initialized")
         return self._dut_clk
 
     @dut_clk.setter
     def dut_clk(self, dut_clk):
         if not isinstance(dut_clk, UartSink):
-            raise ValueError(
-                f"property {dut_clk.__name__} must be of type {type(Clock)}"
-            )
+            raise ValueError("property dut_clk must be of type Clock")
         self._dut_clk = dut_clk
 
     def attach(self, in_sig: ModifiableObject, out_sig: ModifiableObject, clk: Clock):
