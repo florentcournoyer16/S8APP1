@@ -8,10 +8,11 @@ from cocotbext.uart import UartSource, UartSink
 from cocotb import test
 from cocotb.clock import Clock
 from cocotb.handle import ModifiableObject, HierarchyObject
-from cocotb.log import SimLog
 from uart_agent import UartAgent, UartConfig
 from cocotb import start
 from cocotb.triggers import ClockCycles
+from logger import logger
+
 
 @dataclass
 class DutConfig:
@@ -33,7 +34,6 @@ class BaseEnvironment:
         uart_config: UartConfig,
     ):
         self.test_name = test_name
-        self.logger: Logger = SimLog("cocotb.Test")
         self.__dut__: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
         self.uart_agent: UartAgent = UartAgent(uart_config)
@@ -64,13 +64,13 @@ class BaseEnvironment:
 
     def gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
-        self.logger.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
+        logger.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
         if PYCHARMDEBUG == "enabled":
             pydevd_pycharm.settrace(
                 "localhost", port=50100, stdoutToServer=True, stderrToServer=True
             )
-            self.logger.info("DEBUGGER ENTRY POINT")
-        self.logger.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
+            logger.info("DEBUGGER ENTRY POINT")
+        logger.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
 
     def build_env(self) -> None:
         self.__dut__.in_sig.value = self.dut_config.in_sig
@@ -92,8 +92,8 @@ class BaseEnvironment:
     def load_config(self) -> None:
         pass
 
-    async def run(self):
-        self.logger.info(f"Starting test : {self.test_name}")
+    async def run(self) -> None:
+        logger.info(f"Starting test : {self.test_name}")
         self.gen_config()
         self.build_env()
         await self.reset()

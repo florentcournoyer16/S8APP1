@@ -13,7 +13,8 @@ class CRC8Environment(BaseEnvironment):
             dut=dut, test_name="CRC8", dut_config=dut_config, uart_config=uart_config
         )
         self.mmc: MMCCRC8 = MMCCRC8(
-            logicblock_instance=dut.inst_packet_merger.inst_crc_calc
+            model=super(CRC8Environment, self).uart_agent.model,
+            logicblock_instance=dut.inst_packet_merger.inst_crc_calc,
         )
 
     async def test(self):

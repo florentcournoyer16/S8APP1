@@ -37,9 +37,11 @@ class MMCCRC8:
         logicblock_instance: handle to an instance of a logic block
     """
 
-    def __init__(self, logicblock_instance: SimHandleBase):
+    def __init__(self, model: callable, logicblock_instance: SimHandleBase):
         self.dut = logicblock_instance
         self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
+
+        self.model: callable = model
 
         self.input_mon: Monitor = Monitor(
             clk=self.dut.clk,
@@ -72,10 +74,10 @@ class MMCCRC8:
         self._checkercoro.kill()
         self._checkercoro = None
 
-    # Model, modify as needed.
-    def model(self, echantillons):
-        # equivalent model to HDL code
-        return False
+    # # Model, modify as needed.
+    # def model(self, echantillons) -> bool:
+    #     # equivalent model to HDL code
+    #     return False
 
     # Insert logic to decide when to check the model against the HDL result.
     # then compare output monitor result with model result
