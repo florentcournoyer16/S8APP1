@@ -1,4 +1,5 @@
 from base_environment import BaseEnvironment, DutConfig
+from uart_agent import RegAddr
 from crc8.mmc_crc8 import MMCCRC8
 from cocotb.handle import HierarchyObject
 from uart_agent import UartConfig
@@ -19,3 +20,4 @@ class CRC8Environment(BaseEnvironment):
 
     async def test(self):
         self.logger.info("youpi")
+        self.uart_agent.read(addr=RegAddr.PRODUCT_VER_ID)

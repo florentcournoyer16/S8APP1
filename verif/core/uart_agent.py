@@ -181,7 +181,7 @@ class UartAgent:
         await self.uart_source.write(crc_msg.buff)
         await response
 
-    async def read(self, addr: RegAddr, data: int, timeout_ms: int = 1000):
+    async def read(self, addr: RegAddr, data: int = 0, timeout_ms: int = 1000):
         response: Coroutine = await start(
             self.wait_for_response(self.dut_clk, self.uart_sink, timeout_ms)
         )
