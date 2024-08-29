@@ -10,7 +10,8 @@ from cocotb.clock import Clock
 from cocotb.handle import ModifiableObject, HierarchyObject
 from cocotb.log import SimLog
 from uart_agent import UartAgent, UartConfig
-
+from cocotb import start
+from cocotb.triggers import ClockCycles
 
 @dataclass
 class DutConfig:
@@ -23,11 +24,16 @@ class DutConfig:
     clk_MHz: bool = 0
 
 
-class TestInterface:
+class BaseEnvironment:
     def __init__(
-        self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig
+        self,
+        test_name: str,
+        dut: HierarchyObject,
+        dut_config: DutConfig,
+        uart_config: UartConfig,
     ):
-        self.__logger__: Logger = SimLog("cocotb.Test")
+        self.test_name = test_name
+        self.logger: Logger = SimLog("cocotb.Test")
         self.__dut__: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
         self.uart_agent: UartAgent = UartAgent(uart_config)
@@ -56,35 +62,43 @@ class TestInterface:
             raise ValueError("property uart_agent must be of type UartAgent")
         self._uart_agent = uart_agent
 
-    def gen_config(self):
+    def gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
-        self.__logger__.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
+        self.logger.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
         if PYCHARMDEBUG == "enabled":
             pydevd_pycharm.settrace(
                 "localhost", port=50100, stdoutToServer=True, stderrToServer=True
             )
-            self.__logger__.info("DEBUGGER ENTRY POINT")
-        self.__logger__.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
+            self.logger.info("DEBUGGER ENTRY POINT")
+        self.logger.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
 
-    def build_env(self):
+    def build_env(self) -> None:
         self.__dut__.in_sig.value = self.dut_config.in_sig
         self.__dut__.resetCyclic.value = self.dut_config.reset_cyclic
         self.__dut__.sipms.integer = self.dut_config.sipms
         self.__dut__.clkMHz.value = self.dut_config.clk_MHz
         self.uart_agent.attach(
-            self.__dut__.in_sig, self.__dut__.out_sig, self.__dut__.clk
+            in_sig=self.__dut__.in_sig,
+            out_sig=self.__dut__.out_sig,
+            clk=self.__dut__.clk,
         )
 
-    def reset(self) -> None:
-        pass
+    async def reset(self) -> None:
+        self.__dut__.reset.value = 1
+        await start(Clock(self.__dut__.clk, 10, units="ns").start())
+        await ClockCycles(self.__dut__.clk, 10, rising=True)
+        self.__dut__.reset.value = 0
 
     def load_config(self) -> None:
         pass
 
-    def run(self):
+    async def run(self):
+        self.logger.info(f"Starting test : {self.test_name}")
         self.gen_config()
         self.build_env()
-        self.test()
+        await self.reset()
+        self.load_config()
+        await self.test()
 
-    def test(self):
+    async def test(self):
         raise NotImplementedError("override this test in daughter class")
