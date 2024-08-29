@@ -18,9 +18,9 @@ class UartAgent:
         uart_config: UartConfig,
     ):
         self.uart_config = uart_config
-        self.uart_source: Optional[UartSource] = None
-        self.uart_sink: Optional[UartSink] = None
-        self.dut_clk: Optional[Clock] = None
+        self._uart_source: Optional[UartSource] = None
+        self._uart_sink: Optional[UartSink] = None
+        self._dut_clk: Optional[Clock] = None
 
     @property
     def uart_config(self) -> UartConfig:

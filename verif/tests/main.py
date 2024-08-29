@@ -1,6 +1,8 @@
 import cocotb
 from cocotb.clock import Clock
-from crc8_environment import CRC8Environment
+from crc8.crc8_environment import CRC8Environment
+from base_environment import DutConfig
+from uart_agent import UartConfig
 import os
 
 import pydevd_pycharm
@@ -15,6 +17,6 @@ async def main(dut):
     uart_config = UartConfig()
 
     tests = []
-    tests.append(CRC8Environment(dut_config, uart_config))
+    tests.append(CRC8Environment(dut, dut_config, uart_config))
     for test in tests:
-        test.run(dut)
+        await test.run()
