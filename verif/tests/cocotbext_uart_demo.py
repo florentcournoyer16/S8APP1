@@ -5,7 +5,6 @@ from cocotbext.uart import UartSource, UartSink
 from utilsVerif import print_cocotb_BinaryValue
 from cocotb.log import SimLog
 
-
 # Decorator to tell cocotb this function is a coroutine
 @cocotb.test()
 async def cocotbext_uart_demo(dut):

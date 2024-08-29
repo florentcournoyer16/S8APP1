@@ -16,7 +16,7 @@ async def do_wait_only(dut):
     print(PYCHARMDEBUG)
 
     if(PYCHARMDEBUG == "enabled"):
-        pydevd_pycharm.settrace('localhost', port=50100, stdoutToServer=True, stderrToServer=True)
+        pydevd_pycharm.settrace('localhost', port=50101, stdoutToServer=True, stderrToServer=True)
 
     # set a signal to some value
     dut.reset.value = 1

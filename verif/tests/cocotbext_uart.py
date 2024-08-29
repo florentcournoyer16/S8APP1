@@ -2,7 +2,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Join
 from cocotbext.uart import UartSource, UartSink
-import utilsVerif as uv
+from utils_verif import build_command_message, get_expected_crc
 from cocotb.log import SimLog
 
 import os
@@ -59,7 +59,7 @@ async def cocotbext_uart(dut):
     # Generate arbitrary value to send on the UART
     #SomeValue = cocotb.binary.BinaryValue(value=0x1023456789ABDCEF, n_bits=64, bigEndian=False)
 
-    SomeValue = uv.build_command_message(command=0x0, addr=0x09, data=0x0)
+    SomeValue = build_command_message(command=0x0, addr=0x09, data=0x0)
 
     # Print cocotb value demo function. Uncomment if desired.
     # print_cocotb_BinaryValue(SomeValue)
@@ -69,7 +69,7 @@ async def cocotbext_uart(dut):
     await uart_driver.wait()
 
     # Calculate its CRC
-    resultingCRC = uv.get_expected_crc(SomeValue.buff)
+    resultingCRC = get_expected_crc(SomeValue.buff)
     # Convert to cocotb format
     crc_to_send = cocotb.binary.BinaryValue(value=resultingCRC, n_bits=8, bigEndian=False)
     # write to UART driver
