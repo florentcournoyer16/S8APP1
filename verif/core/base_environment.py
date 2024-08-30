@@ -11,8 +11,8 @@ from cocotb.handle import ModifiableObject, HierarchyObject
 from uart_agent import UartAgent, UartConfig
 from cocotb import start
 from cocotb.triggers import ClockCycles
-from logger import logger
-
+from cocotb.log import SimLog
+from base_mmc import BaseMMC
 
 @dataclass
 class DutConfig:
@@ -28,15 +28,18 @@ class DutConfig:
 class BaseEnvironment:
     def __init__(
         self,
-        test_name: str,
         dut: HierarchyObject,
         dut_config: DutConfig,
         uart_config: UartConfig,
+        test_name: str,
+        logger_name: str,
     ):
-        self.test_name = test_name
-        self.__dut__: HierarchyObject = dut
+        self._dut: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
         self.uart_agent: UartAgent = UartAgent(uart_config)
+        self._test_name: str = test_name
+        self._log = SimLog("cocotb.%s" % logger_name)
+        self._mmc: List[BaseMMC] = []
 
     @property
     def dut_config(self) -> DutConfig:
@@ -62,43 +65,47 @@ class BaseEnvironment:
             raise ValueError("property uart_agent must be of type UartAgent")
         self._uart_agent = uart_agent
 
-    def gen_config(self) -> None:
+    def _gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
-        logger.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
+        self._log.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
         if PYCHARMDEBUG == "enabled":
             pydevd_pycharm.settrace(
                 "localhost", port=50100, stdoutToServer=True, stderrToServer=True
             )
-            logger.info("DEBUGGER ENTRY POINT")
-        logger.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
+            self._log.info("DEBUGGER ENTRY POINT")
+        self._log.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
 
-    def build_env(self) -> None:
-        self.__dut__.in_sig.value = self.dut_config.in_sig
-        self.__dut__.resetCyclic.value = self.dut_config.reset_cyclic
-        self.__dut__.sipms.integer = self.dut_config.sipms
-        self.__dut__.clkMHz.value = self.dut_config.clk_MHz
+    def _build_env(self) -> None:
+        self._dut.in_sig.value = self.dut_config.in_sig
+        self._dut.resetCyclic.value = self.dut_config.reset_cyclic
+        self._dut.sipms.integer = self.dut_config.sipms
+        self._dut.clkMHz.value = self.dut_config.clk_MHz
         self.uart_agent.attach(
-            in_sig=self.__dut__.in_sig,
-            out_sig=self.__dut__.out_sig,
-            clk=self.__dut__.clk,
+            in_sig=self._dut.in_sig,
+            out_sig=self._dut.out_sig,
+            dut_clk=self._dut.clk,
         )
 
-    async def reset(self) -> None:
-        self.__dut__.reset.value = 1
-        await start(Clock(self.__dut__.clk, 10, units="ns").start())
-        await ClockCycles(self.__dut__.clk, 10, rising=True)
-        self.__dut__.reset.value = 0
+    async def _reset(self) -> None:
+        self._dut.reset.value = 1
+        await start(Clock(self._dut.clk, 10, units="ns").start())
+        await ClockCycles(self._dut.clk, 10, rising=True)
+        self._dut.reset.value = 0
 
-    def load_config(self) -> None:
+    def _load_config(self) -> None:
         pass
 
+    async def _test(self):
+        raise NotImplementedError("override this method in daughter class")
+    
     async def run(self) -> None:
-        logger.info(f"Starting test : {self.test_name}")
-        self.gen_config()
-        self.build_env()
-        await self.reset()
-        self.load_config()
-        await self.test()
-
-    async def test(self):
-        raise NotImplementedError("override this test in daughter class")
+        self._log.info(f"Starting test : {self._test_name}")
+        self._gen_config()
+        self._build_env()
+        for mmc in self._mmc:
+            mmc.start()
+        await self._reset()
+        self._load_config()
+        await self._test()
+        for mmc in self._mmc:
+            mmc.stop()

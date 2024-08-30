@@ -12,24 +12,12 @@ from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge, ClockCycles
 from cocotb.log import SimLog
 from monitor import Monitor
+from base_mmc import BaseMMC
+from utils_verif import calculateCRC8_singleCycle
 
-# dut.inst_packet_merge.inst_crc_calc.i_valid
-# dut.inst_packet_merge.inst_crc_calc.i_last
-# dut.inst_packet_merge.inst_crc_calc.i_data
+CRC8_START = 0x0D
 
-# dut.inst_packet_merge.inst_crc_calc.o_crc8
-# dut.inst_packet_merge.inst_crc_calc.o_done
-# dut.inst_packet_merge.inst_crc_calc.o_match
-
-# dut.inst_packet_merge.inst_crc_calc.r_crc8
-# dut.inst_packet_merge.inst_crc_calc.r_done
-# dut.inst_packet_merge.inst_crc_calc.r_match
-
-# dut.inst_packet_merge.inst_crc_calc.reset
-# dut.inst_packet_merge.inst_crc_calc.clk
-
-
-class MMCCRC8:
+class MMCCRC8(BaseMMC):
     """
     Reusable checker of a checker instance
 
@@ -37,47 +25,34 @@ class MMCCRC8:
         logicblock_instance: handle to an instance of a logic block
     """
 
-    def __init__(self, model: callable, logicblock_instance: SimHandleBase):
-        self.dut = logicblock_instance
-        self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
+    def __init__(self, logicblock_instance: SimHandleBase):
+        super(MMCCRC8, self).__init__(logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
 
-        self.model: callable = model
 
-        self.input_mon: Monitor = Monitor(
-            clk=self.dut.clk,
-            valid=self.dut.i_valid,
-            datas=dict(idata=self.dut.i_data),
+    def _construct_monitors(self) -> tuple[Monitor, Monitor]:
+        input_mon: Monitor = Monitor(
+            clk=self._logicblock.clk,
+            valid=self._logicblock.i_valid,
+            datas=dict(i_data=self._logicblock.i_data)
         )
 
-        self.output_mon: Monitor = Monitor(
-            clk=self.dut.clk,
-            valid=self.dut.o_done,
-            datas=dict(o_match=self.dut.o_match),
+        output_mon: Monitor = Monitor(
+            clk=self._logicblock.clk,
+            valid=self._logicblock.o_done,
+            datas=dict(o_match=self._logicblock.o_match)
         )
-
-        self._checkercoro: Optional[Task] = None
-
-    def start(self) -> None:
-        """Starts monitors, model, and checker coroutine"""
-        if self._checkercoro is not None:
-            raise RuntimeError("Monitor already started")
-        self.input_mon.start()
-        self.output_mon.start()
-        self._checkercoro = start_soon(self._checker())
-
-    def stop(self) -> None:
-        """Stops everything"""
-        if self._checkercoro is None:
-            raise RuntimeError("Monitor never started")
-        self.input_mon.stop()
-        self.output_mon.stop()
-        self._checkercoro.kill()
-        self._checkercoro = None
+        return input_mon, output_mon
 
     # # Model, modify as needed.
-    # def model(self, echantillons) -> bool:
-    #     # equivalent model to HDL code
-    #     return False
+    def model(self, echantillons) -> bool:
+        # equivalent model to HDL code
+        crc = echantillons[len(echantillons)-1]["i_data"]
+        data = [d['i_data'].integer for d in echantillons][:len(echantillons)-1]
+
+        current_crc = CRC8_START
+        for current_byte in data:
+            current_crc = calculateCRC8_singleCycle(current_byte, current_crc)
+        return current_crc == crc
 
     # Insert logic to decide when to check the model against the HDL result.
     # then compare output monitor result with model result
@@ -85,12 +60,21 @@ class MMCCRC8:
     async def _checker(self) -> None:
         while True:
             # dummy await, allows to run without checker implementation and verify monitors
-            await ClockCycles(self.dut.clk, 1000, rising=True)
+            await ClockCycles(self._logicblock.clk, 1000, rising=True)
+
+            SamplesList = []
+            while len(SamplesList) <= 6:
+                SamplesList.append((await self._input_mon.values.get()))
+
+            match = self.model(SamplesList)
+
+            assert match == (await self._output_mon.values.get())['o_match']
+
             """
             Récupérer toutes les valeurs dans une Queue:
             SamplesList = []
-                while(not self.mon.values.empty()):
-                    SamplesList.append(self.mon.values.get_nowait())
+            while(not self.mon.values.empty()):
+                SamplesList.append(self.mon.values.get_nowait())
             
             Prendre la valeur d'un signal, au nième élément seulement
             SamplesList[N]["NomDictionnaire"]
@@ -111,3 +95,5 @@ class MMCCRC8:
             # compare expected with actual using assertions. 
             assert actual["SignalC"] == expected
             """
+
+

@@ -3,7 +3,6 @@ from cocotb.clock import Clock
 from crc8.crc8_environment import CRC8Environment
 from base_environment import DutConfig
 from uart_agent import UartConfig
-from logger import LoggerSingleton
 import os
 
 import pydevd_pycharm
@@ -16,7 +15,6 @@ async def main(dut):
 
     dut_config = DutConfig()
     uart_config = UartConfig()
-    LoggerSingleton()
     tests = []
     tests.append(CRC8Environment(dut, dut_config, uart_config))
     for test in tests:

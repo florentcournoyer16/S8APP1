@@ -32,7 +32,7 @@ class Monitor:
         self._datas = datas
         self._coro = None  # is monitor running? False if "None"
 
-        self.log = SimLog("cocotb.Monitor.%s" % (type(self).__qualname__))
+        self.log = SimLog("cocotb.%s" % (type(self).__qualname__))
 
     def start(self) -> None:
         if self._coro is not None:

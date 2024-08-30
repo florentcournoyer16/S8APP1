@@ -9,17 +9,22 @@ from cocotb import Coroutine
 from cocotb.binary import BinaryValue
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
-from logger import logger
+from cocotb.log import SimLog
 
 
 CRC8_START = 0x0D
 CRC_POLY = 0xC6
 
 
-class Command(Enum):
+class UartCmd(Enum):
     READ = 0x0
     WRITE = 0x1
 
+class UartResp(Enum):
+    NACK = 0x0
+    ACK_READ = 0x1
+    ACK_WRITE = 0x2
+    EVENT = 0x3
 
 class RegAddr(Enum):
     DATA_MODE = 0x00  # RW
@@ -54,7 +59,8 @@ class UartAgent:
         self.uart_config = uart_config
         self._uart_source: Optional[UartSource] = None
         self._uart_sink: Optional[UartSink] = None
-        self._dut_clk: Optional[Clock] = None
+        self._dut_clk: Optional[ModifiableObject] = None
+        self._log = SimLog("cocotb.%s" % (type(self).__qualname__))
 
     @property
     def uart_config(self) -> UartConfig:
@@ -63,19 +69,19 @@ class UartAgent:
         return self._uart_config
 
     @uart_config.setter
-    def uart_config(self, uart_config):
+    def uart_config(self, uart_config) -> None:
         if not isinstance(uart_config, UartConfig):
             raise ValueError("property uart_config must be of type UartConfig")
         self._uart_config = uart_config
 
     @property
-    def uart_source(self) -> UartConfig:
+    def uart_source(self) -> UartSource:
         if self._uart_source is None:
             raise ValueError("property uart_source is not initialized")
         return self._uart_source
 
     @uart_source.setter
-    def uart_source(self, uart_source):
+    def uart_source(self, uart_source) -> None:
         if not isinstance(uart_source, UartSource):
             raise ValueError("property uart_source must be of type UartSource")
         self._uart_source = uart_source
@@ -87,7 +93,7 @@ class UartAgent:
         return self._uart_sink
 
     @uart_sink.setter
-    def uart_sink(self, uart_sink):
+    def uart_sink(self, uart_sink) -> None:
         if not isinstance(uart_sink, UartSink):
             raise ValueError("property uart_sink must be of type UartSink")
         self._uart_sink = uart_sink
@@ -99,12 +105,38 @@ class UartAgent:
         return self._dut_clk
 
     @dut_clk.setter
-    def dut_clk(self, dut_clk):
+    def dut_clk(self, dut_clk) -> None:
         if not isinstance(dut_clk, ModifiableObject):
             raise ValueError("property dut_clk must be of type ModifiableObject")
         self._dut_clk = dut_clk
 
-    def attach(self, in_sig: ModifiableObject, out_sig: ModifiableObject, clk: ModifiableObject):
+    def _build_pkt(self, cmd: UartCmd, addr: RegAddr, data: int) -> BinaryValue:
+        message = (
+            (cmd.value << self.uart_config.command_pos)
+            + (addr.value << self.uart_config.addr_pos)
+            + (data << self.uart_config.data_pos)
+        )
+        return BinaryValue(
+            value=message,
+            n_bits=self.uart_config.packet_size,
+            bigEndian=self.uart_config.endianness,
+        )
+
+    def _calc_crc8(self, bytes: bytes) -> int:
+        current_crc = CRC8_START
+        for byte in bytes:
+            crc = int2ba(current_crc, 8)
+            data_bits = int2ba(byte, 8)
+            poly = int2ba(CRC_POLY, 8)
+            for j in range(7, -1, -1):
+                if crc[7] != data_bits[j]:
+                    crc = (crc >> 1) ^ poly
+                else:
+                    crc >>= 1
+            current_crc = ba2int(crc)
+        return current_crc
+
+    def attach(self, in_sig: ModifiableObject, out_sig: ModifiableObject, dut_clk: ModifiableObject) -> None:
         self.uart_source = UartSource(
             data=in_sig,
             baud=self.uart_config.baud_rate,
@@ -115,92 +147,23 @@ class UartAgent:
             baud=self.uart_config.baud_rate,
             bits=self.uart_config.frame_size,
         )
-        self.dut_clk = clk
+        self.dut_clk = dut_clk
 
-    def build_cmd_msg(self, command: Command, addr: RegAddr, data: int):
-        message = (
-            (command.value << self.uart_config.command_pos)
-            + (addr.value << self.uart_config.addr_pos)
-            + (data << self.uart_config.data_pos)
-        )
-        return BinaryValue(
-            value=message,
-            n_bits=self.uart_config.packet_size,
-            bigEndian=self.uart_config.endianness,
-        )
-
-    def print_cmd_msg(self, cmd_msg: BinaryValue):
-        print("print Cocotb binary string : " + cmd_msg.binstr)
-        print("print Cocotb integer       : " + "{}".format(cmd_msg.integer))
-        print(
-            "print Cocotb integer in hex: "
-            + "0x{0:{width}x}".format(cmd_msg.integer, width=8)
-        )
-        print("print Cocotb byte buffer ", end="")
-        print(cmd_msg.buff)
-        print("print Cocotb byte byte per byte, seen as a serie of int   : ")
-        for item in cmd_msg.buff:
-            print("\t0x{0:2x} ".format(item), end="")  # hexadecimal
-            print(item)  # decimal
-        print()
-
-    def calculate_crc8_single_cycle(self, data: int, current_crc: int):
-        crc = int2ba(current_crc, 8)
-        data_bits = int2ba(data, 8)
-        poly = int2ba(CRC_POLY, 8)
-        for j in range(7, -1, -1):
-            if crc[7] != data_bits[j]:
-                crc = (crc >> 1) ^ poly
-            else:
-                crc >>= 1
-        return ba2int(crc)
-
-    def calculate_crc8(self, value_array: bytes):
-        current_crc = CRC8_START
-        for b in value_array:
-            current_crc = self.calculate_crc8_single_cycle(b, current_crc)
-        return current_crc
-
-    async def write(self, addr: RegAddr, data: int, timeout_ms: int = 100):
-        response: Coroutine = await start(
-            self.wait_for_response(self.dut_clk, self.uart_sink, timeout_ms)
-        )
-
-        cmd_msg: BinaryValue = self.build_cmd_msg(
-            command=Command.WRITE, addr=addr, data=data
-        )
-
-        #self.print_cmd_msg(cmd_msg)
-
-        await self.uart_source.write(cmd_msg.buff)
-        await self.uart_source.wait()
-
-        raw_crc = self.calculate_crc8(cmd_msg.buff)
-        crc_msg = BinaryValue(
-            value=raw_crc, n_bits=8, bigEndian=self._uart_config.endianness
-        )
-        await self.uart_source.write(crc_msg.buff)
-        await response
-
-    async def read(self, addr: RegAddr, data: int = 0, timeout_clk_cycle: int = 840):
+    async def transaction(self, cmd: UartCmd, addr: RegAddr, data: int = 0, timeout_clk_cycle: int = 840) -> None:
         response: Coroutine = await start(
             self.wait_for_response(timeout_clk_cycle)
         )
 
-        cmd_msg: BinaryValue = self.build_cmd_msg(
-            command=Command.READ, addr=addr, data=data
-        )
+        cmd_pkt: BinaryValue = self._build_pkt(cmd=cmd, addr=addr, data=data)
 
-        # self.print_cmd_msg(cmd_msg)
-
-        await self.uart_source.write(cmd_msg.buff)
+        await self.uart_source.write(cmd_pkt.buff)
         await self.uart_source.wait()
 
-        raw_crc = self.calculate_crc8(cmd_msg.buff)
-        crc_msg = BinaryValue(
-            value=raw_crc, n_bits=self.uart_config.frame_size, bigEndian=self._uart_config.endianness
+        raw_crc = self._calc_crc8(cmd_pkt.buff)
+        crc_pkt = BinaryValue(
+            value=raw_crc, n_bits=8, bigEndian=self._uart_config.endianness
         )
-        await self.uart_source.write(crc_msg.buff)
+        await self.uart_source.write(crc_pkt.buff)
         await response
 
     async def wait_for_response(self, timeout_clk_cycles: int):
@@ -211,16 +174,38 @@ class UartAgent:
             await ClockCycles(self.dut_clk, int(timeout_clk_cycles / nb_bytes_expected), rising=True)
 
         if cycle == timeout_clk_cycles - 1:
-            logger.info("Timeout for wait reply")
+            self._log.info("Timeout for wait reply")
             raise RuntimeError("Timeout for wait reply")
-            # or use plain assert.
-            # assert False, "Timeout for wait reply"
 
         else:
-            # cocotbext-uart returns byteArray. Convert to bytes first, then to Binary value for uniformity.
-            message_bytes = bytes(await self.uart_sink.read(count=6))
-            message = BinaryValue(value=message_bytes, n_bits=48, bigEndian=False)
-            logger.info(
+            pkt_bytes = bytes(await self.uart_sink.read(count=int(self.uart_config.packet_size / 8)))
+            pkt = BinaryValue(value=pkt_bytes, n_bits=self.uart_config.packet_size, bigEndian=False)
+            self._log.info(
                 "After a wait of " + str(cycle) + "000 clocks, received message: "
             )
-            logger.info("0x{0:0{width}x}".format(message.integer, width=12))
+            #self._log.info(f"0x{pkt.buff.hex()}")
+
+    async def start_acquisition(self, stop_condition: callable, data: int):
+        # Send the EVENT command packet (cmd=0x03)
+        en_acquisiton_cmd: BinaryValue = self._build_pkt(cmd=UartCmd.WRITE, addr=RegAddr.CHANNEL_EN_BITS, data=data)
+        
+        # Write the command packet to the UART source
+        await self.uart_source.write(en_acquisiton_cmd.buff)
+        await self.uart_source.wait()
+
+        # Send CRC for the command packet
+        raw_crc = self._calc_crc8(en_acquisiton_cmd.buff)
+        crc_pkt = BinaryValue(value=raw_crc, n_bits=8, bigEndian=self._uart_config.endianness)
+        await self.uart_source.write(crc_pkt.buff)
+
+        # Accumulate packets until the stop condition is met
+        packets = []
+        while not stop_condition():
+            # Wait for a response
+            await self.wait_for_response(timeout_clk_cycles=100)
+            
+            # Read the packet from the UART sink
+            pkt = await self.uart_sink.read(count=int(self.uart_config.packet_size / 8))
+            packets.append(pkt)
+            
+        return packets
