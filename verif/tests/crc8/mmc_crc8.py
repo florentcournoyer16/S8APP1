@@ -43,15 +43,18 @@ class MMCCRC8(BaseMMC):
         )
         return input_mon, output_mon
 
-    # # Model, modify as needed.
-    def model(self, echantillons) -> bool:
-        # equivalent model to HDL code
-        crc = echantillons[len(echantillons)-1]["i_data"]
-        data = [d['i_data'].integer for d in echantillons][:len(echantillons)-1]
+    def model(self, bytes_array: bytes) -> bool:
+        crc = bytes_array[len(bytes_array)-1]
+        data = bytes_array[:len(bytes_array)-1]
 
+        #self._log.info(f"bytes received in model = {[hex(byte) for byte in bytes_array]}")
+        # self._log.info(f"data for crc = {[hex(byte) for byte in data]}")
+        # self._log.info(f"crc = {[hex(crc)]}")
         current_crc = CRC8_START
+
         for current_byte in data:
             current_crc = calculateCRC8_singleCycle(current_byte, current_crc)
+            # self._log.info(f"current crc = {hex(current_crc)}")
         return current_crc == crc
 
     # Insert logic to decide when to check the model against the HDL result.
@@ -62,13 +65,15 @@ class MMCCRC8(BaseMMC):
             # dummy await, allows to run without checker implementation and verify monitors
             await ClockCycles(self._logicblock.clk, 1000, rising=True)
 
-            SamplesList = []
-            while len(SamplesList) <= 6:
-                SamplesList.append((await self._input_mon.values.get()))
+            mon_samples: List[Dict[str, int]] = []
+            while len(mon_samples) != 7:
+                mon_samples.append((await self._input_mon.values.get()))
 
-            match = self.model(SamplesList)
+            bytes_aray: bytes = bytes([sample['i_data'] for sample in mon_samples])
 
-            assert match == (await self._output_mon.values.get())['o_match']
+            o_match = self.model(bytes_aray)
+
+            assert o_match == (await self._output_mon.values.get())['o_match']
 
             """
             Récupérer toutes les valeurs dans une Queue:

@@ -21,5 +21,5 @@ class CRC8Environment(BaseEnvironment):
         ))
 
     async def _test(self):
-        await self.uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xbadeface0008)
-        #await self.uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        await self.uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
+        await self.uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)

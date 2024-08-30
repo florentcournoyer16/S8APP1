@@ -1,13 +1,10 @@
 import pydevd_pycharm
 
 from dataclasses import dataclass, field
-from typing import Any, Union, List, Optional
-from logging import Logger
+from typing import List
 from os import environ
-from cocotbext.uart import UartSource, UartSink
-from cocotb import test
 from cocotb.clock import Clock
-from cocotb.handle import ModifiableObject, HierarchyObject
+from cocotb.handle import HierarchyObject
 from uart_agent import UartAgent, UartConfig
 from cocotb import start
 from cocotb.triggers import ClockCycles
@@ -70,7 +67,7 @@ class BaseEnvironment:
         self._log.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
         if PYCHARMDEBUG == "enabled":
             pydevd_pycharm.settrace(
-                "localhost", port=50100, stdoutToServer=True, stderrToServer=True
+                "localhost", port=50101, stdoutToServer=True, stderrToServer=True
             )
             self._log.info("DEBUGGER ENTRY POINT")
         self._log.info("ASK MARC-ANDRE FOR ANYTHING ELSE")

@@ -63,7 +63,7 @@ class Monitor:
         """
         # possible messages to test monitor
         # self.log.info("use this to print some information at info level")
-        self.log.info({name: handle.value for name, handle in self._datas.items()})
+        self.log.info({name: hex(handle.value) for name, handle in self._datas.items()})
 
         # for loop going through all the values in the signals to sample (see constructor)
         return {name: handle.value for name, handle in self._datas.items()}
