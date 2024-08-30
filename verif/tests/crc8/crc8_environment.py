@@ -15,16 +15,14 @@ class CRC8Environment(BaseEnvironment):
         
     def _build_env(self) -> None:
         super(CRC8Environment, self)._build_env()
-        self._mmc.append(CRC8MMC(
+        self._mmc_list.append(CRC8MMC(
             logicblock_instance=self._dut.inst_packet_merger.inst_crc_calc
         ))
 
-    def _set_uart_agent(self, uart_config: BaseUartAgent) -> BaseUartAgent:
+    def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
         return CRC8UartAgent(uart_config)
 
-    async def _test(self):
-        # await self.uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
-        self.uart_agent.crc8_offset = 0
-        await self.uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
-
-
+    async def _test(self) -> None:
+        # await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
+        self._uart_agent.crc8_offset = 0
+        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)

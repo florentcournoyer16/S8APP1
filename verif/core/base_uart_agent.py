@@ -41,8 +41,8 @@ class RegAddr(Enum):
 @dataclass
 class UartConfig:
     baud_rate: int = 1000000
-    command_pos: tuple[int, int] = field(default_factory=lambda: (43, 48))
-    reserved_pos: tuple[int, int] = field(default_factory=lambda: (40, 43))
+    cmd_pos: tuple[int, int] = field(default_factory=lambda: (43, 48))
+    res_pos: tuple[int, int] = field(default_factory=lambda: (40, 43))
     addr_pos: tuple[int, int] = field(default_factory=lambda: (32, 40))
     data_pos: tuple[int, int] = field(default_factory=lambda: (0, 32))
     frame_size: int = 8
@@ -75,7 +75,7 @@ class BaseUartAgent:
 
     def _build_pkt(self, cmd: UartCmd, addr: RegAddr, data: int) -> BinaryValue:
         message = (
-            (cmd.value << self.uart_config.command_pos[0])
+            (cmd.value << self.uart_config.cmd_pos[0])
             + (addr.value << self.uart_config.addr_pos[0])
             + (data << self.uart_config.data_pos[0])
         )
@@ -102,9 +102,12 @@ class BaseUartAgent:
     def _log_resp_packet(self, pkt: BinaryValue) -> None:
         pkt_str = pkt.binstr[::-1]
 
-        command_start, command_end = self.uart_config.command_pos
-        uart_resp_str: str = hex(int(pkt_str[command_start:command_end][::-1], 2))
+        cmd_start, cmd_end = self.uart_config.cmd_pos
+        uart_resp_str: str = hex(int(pkt_str[cmd_start:cmd_end][::-1], 2))
         uart_resp: UartResp = UartResp(int(uart_resp_str, 16))
+
+        res_start, res_end = self.uart_config.res_pos
+        uart_res: str = hex(int(pkt_str[res_start:res_end][::-1], 2))
 
         addr_start, addr_end = self.uart_config.addr_pos
         uart_addr: str = hex(int(pkt_str[addr_start:addr_end][::-1], 2))
@@ -113,6 +116,7 @@ class BaseUartAgent:
         uart_data: str = hex(int(pkt_str[data_start:data_end][::-1], 2))
 
         self._log.info(f"UartResp: {uart_resp_str} ({uart_resp})")
+        self._log.info(f"Reserved: {uart_res}")
         self._log.info(f"AddrReg: {uart_addr}")
         self._log.info(f"Data: {uart_data}")
 
@@ -166,7 +170,7 @@ class BaseUartAgent:
         self._log_resp_packet(pkt)
         return pkt
 
-    async def start_acquisition(self, stop_condition: callable, data: int):
+    async def start_acquisition(self, stop_cond: callable, data: int):
         # Send the EVENT command packet (cmd=0x03)
         en_acquisiton_cmd: BinaryValue = self._build_pkt(cmd=UartCmd.WRITE, addr=RegAddr.CHANNEL_EN_BITS, data=data)
         
@@ -181,7 +185,7 @@ class BaseUartAgent:
 
         # Accumulate packets until the stop condition is met
         packets = []
-        while not stop_condition():
+        while not stop_cond():
             # Wait for a response
             await self.wait_for_response(retries=100, timeout_cycles=100)
             

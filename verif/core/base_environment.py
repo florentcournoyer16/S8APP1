@@ -33,25 +33,26 @@ class BaseEnvironment:
     ):
         self._dut: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
-        self.uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
+        self._uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
         self._test_name: str = test_name
+        self._mmc_list: List[BaseMMC] = []
         self._log = SimLog("cocotb.%s" % logger_name)
-        self._mmc: List[BaseMMC] = []
 
     @property
     def dut_config(self) -> DutConfig:
         if self._dut_config is None:
-            raise ValueError("property dut_config is not initialized")
+            raise ValueError("Property dut_config is not initialized")
         return self._dut_config
 
     @dut_config.setter
     def dut_config(self, dut_config: DutConfig) -> None:
         if not isinstance(dut_config, DutConfig):
-            raise TypeError("property dut_config must be of type DutConfig")
+            raise TypeError("Property dut_config must be of type DutConfig")
         self._dut_config = dut_config
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
         return BaseUartAgent(uart_config)
+
     def _gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
         self._log.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
@@ -59,15 +60,14 @@ class BaseEnvironment:
             pydevd_pycharm.settrace(
                 "localhost", port=50101, stdoutToServer=True, stderrToServer=True
             )
-            self._log.info("DEBUGGER ENTRY POINT")
-        self._log.info("ASK MARC-ANDRE FOR ANYTHING ELSE")
+            self._log.info("Debugger entry point")
 
     def _build_env(self) -> None:
         self._dut.in_sig.value = self.dut_config.in_sig
         self._dut.resetCyclic.value = self.dut_config.reset_cyclic
         self._dut.sipms.integer = self.dut_config.sipms
         self._dut.clkMHz.value = self.dut_config.clk_MHz
-        self.uart_agent.attach(
+        self._uart_agent.attach(
             in_sig=self._dut.in_sig,
             out_sig=self._dut.out_sig,
             dut_clk=self._dut.clk,
@@ -83,16 +83,16 @@ class BaseEnvironment:
         pass
 
     async def _test(self):
-        raise NotImplementedError("override this method in daughter class")
+        raise NotImplementedError("Override this method in daughter class")
     
     async def run(self) -> None:
         self._log.info(f"Starting test : {self._test_name}")
         self._gen_config()
         self._build_env()
-        for mmc in self._mmc:
+        for mmc in self._mmc_list:
             mmc.start()
         await self._reset()
         self._load_config()
         await self._test()
-        for mmc in self._mmc:
+        for mmc in self._mmc_list:
             mmc.stop()
