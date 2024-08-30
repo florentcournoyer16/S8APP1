@@ -1,15 +1,14 @@
-import cocotb
-from cocotb.clock import Clock
+from cocotb import test
 from crc8.crc8_environment import CRC8Environment
 from base_environment import DutConfig
-from uart_agent import UartConfig
+from base_uart_agent import UartConfig
 import os
 
 import pydevd_pycharm
 
 
 # Decorator to tell cocotb this function is a coroutine
-@cocotb.test()
+@test()
 async def main(dut):
     print("Starting my_test")
 

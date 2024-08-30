@@ -5,7 +5,7 @@ from typing import List
 from os import environ
 from cocotb.clock import Clock
 from cocotb.handle import HierarchyObject
-from uart_agent import UartAgent, UartConfig
+from base_uart_agent import BaseUartAgent, UartConfig
 from cocotb import start
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
@@ -33,7 +33,7 @@ class BaseEnvironment:
     ):
         self._dut: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
-        self.uart_agent: UartAgent = UartAgent(uart_config)
+        self.uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
         self._test_name: str = test_name
         self._log = SimLog("cocotb.%s" % logger_name)
         self._mmc: List[BaseMMC] = []
@@ -47,21 +47,11 @@ class BaseEnvironment:
     @dut_config.setter
     def dut_config(self, dut_config: DutConfig) -> None:
         if not isinstance(dut_config, DutConfig):
-            raise ValueError("property dut_config must be of type DutConfig")
+            raise TypeError("property dut_config must be of type DutConfig")
         self._dut_config = dut_config
 
-    @property
-    def uart_agent(self) -> UartAgent:
-        if self._uart_agent is None:
-            raise ValueError("property uart_agent is not initialized")
-        return self._uart_agent
-
-    @uart_agent.setter
-    def uart_agent(self, uart_agent: UartAgent) -> None:
-        if not isinstance(uart_agent, UartAgent):
-            raise ValueError("property uart_agent must be of type UartAgent")
-        self._uart_agent = uart_agent
-
+    def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
+        return BaseUartAgent(uart_config)
     def _gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
         self._log.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")

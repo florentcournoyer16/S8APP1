@@ -24,7 +24,7 @@ class BaseMMC:
     """
     def __init__(self, logicblock_instance: SimHandleBase, logger_name: str):
         self._logicblock: SimHandleBase = logicblock_instance
-        self._input_mon, self._output_mon = self._construct_monitors()
+        self._input_mon, self._output_mon = self._set_monitors()
         self._checkercoro: Optional[Task] = None
         self._log = SimLog("cocotb.MMC.%s" % logger_name)
 
@@ -45,7 +45,7 @@ class BaseMMC:
         self._checkercoro.kill()
         self._checkercoro = None
 
-    def _construct_monitors(self) -> tuple[Monitor, Monitor]:
+    def _set_monitors(self) -> tuple[Monitor, Monitor]:
         raise NotImplementedError("override this method in daughter class")
 
     def _model(self) -> bool:
