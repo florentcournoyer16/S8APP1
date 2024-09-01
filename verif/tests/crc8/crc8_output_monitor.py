@@ -10,7 +10,7 @@ class CRC8OutputMonitor(BaseMonitor):
         super(CRC8OutputMonitor, self).__init__(clk, valid, datas)
     async def _run(self) -> None:
         while True:
-            await RisingEdge(self._clk) and RisingEdge(self._valid)
+            await RisingEdge(self._valid)
             # this condition decides when to record the signal states
             if self._valid.value.binstr != "1":
                 # skip whatever comes after, and start the while loop again

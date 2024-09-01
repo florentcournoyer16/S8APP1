@@ -43,19 +43,21 @@ class CRC8MMC(BaseMMC):
         )
         return input_mon, output_mon
 
-    def model(self, bytes_array: bytes) -> bool:
+    def model(self, bytes_array: bytes) -> int:
         crc = bytes_array[len(bytes_array)-1]
         data = bytes_array[:len(bytes_array)-1]
 
-        self._log.info(f"bytes received in model = {[hex(byte) for byte in bytes_array]}")
-        self._log.info(f"data for crc = {[hex(byte) for byte in data]}")
-        self._log.info(f"crc = {[hex(crc)]}")
+        # self._log.info(f"bytes received in model = {[hex(byte) for byte in bytes_array]}")
+        # self._log.info(f"data for crc = {[hex(byte) for byte in data]}")
+        # self._log.info(f"crc = {[hex(crc)]}")
         current_crc = CRC8_START
 
         for current_byte in data:
             current_crc = calculateCRC8_singleCycle(current_byte, current_crc)
-            self._log.info(f"current crc = {hex(current_crc)}")
-        return current_crc == crc
+            # self._log.info(f"current crc = {hex(current_crc)}")
+        if current_crc == crc:
+            return 1
+        return 0
 
     # Insert logic to decide when to check the model against the HDL result.
     # then compare output monitor result with model result
@@ -74,10 +76,14 @@ class CRC8MMC(BaseMMC):
             bytes_aray: bytes = bytes([sample['i_data'] for sample in mon_samples])
 
             o_match_model = self.model(bytes_aray)
-            o_match_logicblock = (await self._output_mon.values.get())['o_match']
+
+            o_match_logicblock = await self._output_mon.values.get()
+
+            self._log.info(f"o_match_logicblock = {o_match_logicblock}")
+
+            assert (o_match_model == o_match_logicblock['o_match'])
 
 
-            assert o_match_model == o_match_logicblock
 
             #while not self._input_mon.values.empty():
                 #self._input_mon.values.get_nowait()
