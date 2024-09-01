@@ -10,10 +10,10 @@ from cocotb.clock import Clock
 from cocotb.handle import SimHandleBase
 from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge, ClockCycles
-from cocotb.log import SimLog
-from monitor import Monitor
+from crc8.crc8_output_monitor import CRC8OutputMonitor
 from base_mmc import BaseMMC
 from utils_verif import calculateCRC8_singleCycle
+from base_monitor import BaseMonitor
 
 CRC8_START = 0x0D
 
@@ -29,17 +29,17 @@ class CRC8MMC(BaseMMC):
         super(CRC8MMC, self).__init__(logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
 
 
-    def _set_monitors(self) -> tuple[Monitor, Monitor]:
-        input_mon: Monitor = Monitor(
+    def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
+        input_mon: BaseMonitor = BaseMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.i_valid,
             datas=dict(i_data=self._logicblock.i_data, i_last=self._logicblock.i_last)
         )
 
-        output_mon: Monitor = Monitor(
+        output_mon: BaseMonitor = CRC8OutputMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.o_done,
-            datas=dict(o_match=self._logicblock.o_match)
+            datas=dict(o_match=self._logicblock.o_match, reset=self._logicblock.reset)
         )
         return input_mon, output_mon
 
