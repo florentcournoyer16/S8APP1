@@ -11,7 +11,7 @@ from cocotb.handle import SimHandleBase
 from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge, ClockCycles
 from cocotb.log import SimLog
-from monitor import Monitor
+from base_monitor import BaseMonitor
 from logging import Logger
 
 
@@ -45,7 +45,7 @@ class BaseMMC:
         self._checkercoro.kill()
         self._checkercoro = None
 
-    def _set_monitors(self) -> tuple[Monitor, Monitor]:
+    def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
         raise NotImplementedError("override this method in daughter class")
 
     def _model(self) -> bool:

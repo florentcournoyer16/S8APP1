@@ -10,10 +10,10 @@ from cocotb.clock import Clock
 from cocotb.handle import SimHandleBase
 from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge, ClockCycles
-from cocotb.log import SimLog
-from monitor import Monitor
+from crc8.crc8_output_monitor import CRC8OutputMonitor
 from base_mmc import BaseMMC
 from utils_verif import calculateCRC8_singleCycle
+from base_monitor import BaseMonitor
 
 CRC8_START = 0x0D
 
@@ -29,33 +29,35 @@ class CRC8MMC(BaseMMC):
         super(CRC8MMC, self).__init__(logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
 
 
-    def _set_monitors(self) -> tuple[Monitor, Monitor]:
-        input_mon: Monitor = Monitor(
+    def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
+        input_mon: BaseMonitor = BaseMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.i_valid,
             datas=dict(i_data=self._logicblock.i_data, i_last=self._logicblock.i_last)
         )
 
-        output_mon: Monitor = Monitor(
+        output_mon: BaseMonitor = CRC8OutputMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.o_done,
-            datas=dict(o_match=self._logicblock.o_match)
+            datas=dict(o_match=self._logicblock.o_match, reset=self._logicblock.reset)
         )
         return input_mon, output_mon
 
-    def model(self, bytes_array: bytes) -> bool:
+    def model(self, bytes_array: bytes) -> int:
         crc = bytes_array[len(bytes_array)-1]
         data = bytes_array[:len(bytes_array)-1]
 
-        self._log.info(f"bytes received in model = {[hex(byte) for byte in bytes_array]}")
-        self._log.info(f"data for crc = {[hex(byte) for byte in data]}")
-        self._log.info(f"crc = {[hex(crc)]}")
+        # self._log.info(f"bytes received in model = {[hex(byte) for byte in bytes_array]}")
+        # self._log.info(f"data for crc = {[hex(byte) for byte in data]}")
+        # self._log.info(f"crc = {[hex(crc)]}")
         current_crc = CRC8_START
 
         for current_byte in data:
             current_crc = calculateCRC8_singleCycle(current_byte, current_crc)
-            self._log.info(f"current crc = {hex(current_crc)}")
-        return current_crc == crc
+            # self._log.info(f"current crc = {hex(current_crc)}")
+        if current_crc == crc:
+            return 1
+        return 0
 
     # Insert logic to decide when to check the model against the HDL result.
     # then compare output monitor result with model result
@@ -74,10 +76,14 @@ class CRC8MMC(BaseMMC):
             bytes_aray: bytes = bytes([sample['i_data'] for sample in mon_samples])
 
             o_match_model = self.model(bytes_aray)
-            o_match_logicblock = (await self._output_mon.values.get())['o_match']
+
+            o_match_logicblock = await self._output_mon.values.get()
+
+            self._log.info(f"o_match_logicblock = {o_match_logicblock}")
+
+            assert (o_match_model == o_match_logicblock['o_match'])
 
 
-            assert o_match_model == o_match_logicblock
 
             #while not self._input_mon.values.empty():
                 #self._input_mon.values.get_nowait()

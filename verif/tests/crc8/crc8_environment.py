@@ -23,6 +23,14 @@ class CRC8Environment(BaseEnvironment):
         return CRC8UartAgent(uart_config)
 
     async def _test(self) -> None:
-        # await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
-        self._uart_agent.crc8_offset = 0
+        await self._test_crc8_valid()
+        await self._test_crc8_invalid()
+
+    async def _test_crc8_valid(self) -> None:
         await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
+        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+
+    async def _test_crc8_invalid(self) -> None:
+        self._uart_agent.crc8_offset = 1
+        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
+        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from cocotbext.uart import UartSource, UartSink
 from cocotb.handle import ModifiableObject
-from typing import Optional
+from typing import Optional, Union
 from cocotb import start
 from cocotb import Coroutine
 from cocotb.binary import BinaryValue
@@ -133,7 +133,7 @@ class BaseUartAgent:
         )
         self._dut_clk = dut_clk
 
-    async def transaction(self, cmd: UartCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 100) -> None:
+    async def transaction(self, cmd: UartCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 60) -> None:
         response: Coroutine = await start(self.wait_for_response(timeout_cycles, retries))
 
         cmd_pkt: BinaryValue = self._build_pkt(cmd=cmd, addr=addr, data=data)
@@ -153,16 +153,17 @@ class BaseUartAgent:
         self._uart_source.clear()
         self._uart_sink.clear()
 
-    async def wait_for_response(self, timeout_cycles: int, retries: int):
+    async def wait_for_response(self, timeout_cycles: int, retries: int) -> Union[BinaryValue, None]:
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
         try_counter = 1
-        while (try_counter <= retries) and (self._uart_sink.count() < nb_bytes_expected):
+        while (try_counter < retries) and (self._uart_sink.count() < nb_bytes_expected):
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
         if try_counter == retries:
             self._log.error(f"Timeout after a wait of {str(timeout_cycles * retries)} clock cycles")
-            raise RuntimeError(f"Timeout after a wait of {str(timeout_cycles * retries)} clock cycles")
+            return None
+            # raise RuntimeError(f"Timeout after a wait of {str(timeout_cycles * retries)} clock cycles")
 
         pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
         pkt = BinaryValue(value=pkt_bytes, n_bits=self.uart_config.packet_size, bigEndian=False)

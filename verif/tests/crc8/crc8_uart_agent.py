@@ -13,8 +13,8 @@ class CRC8UartAgent(BaseUartAgent):
     def crc8_offset(self, offset: int) -> None:
         if not isinstance(offset, int):
             raise TypeError("property crc8_offset must be of type int")
-        self._crc8_offset = offset
+        self._crc8_offset: int = offset
 
     def _calc_crc8(self, bytes_array: bytes) -> int:
-        altered_crc8 = super(CRC8UartAgent, self)._calc_crc8(bytes_array) + self.crc8_offset
+        altered_crc8: int = super(CRC8UartAgent, self)._calc_crc8(bytes_array) + self.crc8_offset
         return altered_crc8

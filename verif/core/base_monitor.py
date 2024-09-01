@@ -3,17 +3,16 @@
 
 # adapted from https://github.com/cocotb/cocotb/blob/stable/1.9/examples/matrix_multiplier/tests/test_matrix_multiplier.py
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import cocotb
-from cocotb.clock import Clock
 from cocotb.handle import SimHandleBase
 from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge
 from cocotb.log import SimLog
 
 
-class Monitor:
+class BaseMonitor:
     """
     Reusable Monitor of one-way control flow (data/valid) streaming data interface
 
@@ -32,7 +31,7 @@ class Monitor:
         self._datas = datas
         self._coro = None  # is monitor running? False if "None"
 
-        self.log = SimLog("cocotb.%s" % (type(self).__qualname__))
+        self._log = SimLog("cocotb.%s" % (type(self).__qualname__))
 
     def start(self) -> None:
         if self._coro is not None:
@@ -62,8 +61,8 @@ class Monitor:
         Return value is what is stored in queue. Meant to be overriden by the user.
         """
         # possible messages to test monitor
-        # self.log.info("use this to print some information at info level")
-        self.log.info({name: hex(handle.value) for name, handle in self._datas.items()})
+        # self._log.info("use this to print some information at info level")
+        self._log.info({name: hex(handle.value) for name, handle in self._datas.items()})
 
         # for loop going through all the values in the signals to sample (see constructor)
         return {name: handle.value for name, handle in self._datas.items()}
