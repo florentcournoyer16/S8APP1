@@ -45,7 +45,7 @@ CRC utility
 Calculates CRC from n-byte packet.
 Usage example
     # Build some n-byte string, for example a read command
-    SomeData = build_command_message(0, 4, 0x345678)  # Reading reg at address 0
+    SomeData = build_command_message(0, 4, 0x345678)  # Reading reg at address 4
     # Calculate its CRC
     resultingCRC = get_expected_crc(SomeData.buff)
     # Convert to cocotb format
