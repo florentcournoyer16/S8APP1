@@ -1,0 +1,338 @@
+-----------------------------------------------------
+
+squence sr1;
+    req ##2 (gnt==1 && req==0);
+endsequence
+
+property pr1;
+    @(posedge clk) cStart |-> sr1; // |-> means on the same clk cycle (DO THIS)
+endproperty
+
+reqGnt: assert property (pr1) $display($stime,,, "\t\t %m PASS") else $display($stime,,, "\t\t %m FAIL")
+
+-----------------------------------------------------
+
+squence sr1;
+     @(posedge clk) req ##2 (gnt==1 && req==0); // @(posedge clk) can be in the sequence, property or assert but put it in the assert
+endsequence
+
+property pr1;
+   cStart |=> sr1; // |=> means on the next clk cycle (DONT DO THIS)
+endproperty
+
+reqGnt: assert property (pr1) $display($stime,,, "\t\t %m PASS") else $display($stime,,, "\t\t %m FAIL")
+
+-----------------------------------------------------
+
+squence sr1;
+     req ##2 (gnt==1 && req==0);
+endsequence
+
+property pr1;
+   cStart |-> sr1; 
+endproperty
+
+reqGnt: assert property (@(posedge clk)  pr1) $display($stime,,, "\t\t %m PASS") else $display($stime,,, "\t\t %m FAIL")
+
+-----------------------------------------------------
+
+module eventtrig;
+event e;
+    always @(posedge clk) -> e;
+    a1: assert property (@e a |=> b);
+endmodule
+
+-----------------------------------------------------
+
+default clocking cb1
+    @(posedge clk);
+endclocking
+
+property checkReqGnt;
+    req ##2 gnt;
+endproperty
+
+property checkBusGrant;
+    bgack |-> not ($isunknown(busgnt));
+end property
+
+reqGntP: assert property (checkReqGnt); // Both asser with take the default clock
+bgackP: assert property (checkBusGrant);
+
+-----------------------------------------------------
+
+default clocking cb1
+    @(posedge clk);
+
+    property checkReqGnt;
+        req ##2 gnt;
+    endproperty
+
+    property checkBusGrant;
+        bgack |-> not ($isunknown(busgnt));
+    end property
+
+    reqGntP: assert property (checkReqGnt); // Both asser with take the default clock
+    bgackP: assert property (checkBusGrant);
+
+endclocking // DO NOT DO THIS
+
+-----------------------------------------------------
+
+module default_explicit_clocking;
+
+default clocking negedgeClock
+    @(negedge clk1);
+endclocking
+
+clocking posedgeClock 
+    @(posedge clk2);
+endclocking
+
+d2: assert property (x |=> y); // Will inherit default clock negedgeClock
+d3: assert property (z [=2] |-> a); //Will inherit default clock negedgeClock
+nd1: assert property (@posedgeClock b |=> c); // Will use non-default clocking posedgeClock
+
+-----------------------------------------------------
+
+module default_explicit_clocking;
+
+default clocking negedgeClock
+    @(negedge clk1);
+endclocking
+
+property nClk;
+    @(posedge clk2) b |=> c;
+endproperty
+
+d2: assert property (x |=> y); // Will inherit default clock negedgeClock
+d3: assert property (z[=2] |-> a); // Will inherit default clock negedgeClock
+nd1: assert property (nClk); // Explicit declaration of clock clk2
+
+-----------------------------------------------------
+
+property q1;
+    $rose(a) |-> ##[1:5] b;
+endproperty
+
+property q2;
+    @(posedge clk) q1;
+endproperty
+
+default clocking posedge_clk @(posedge clk);
+
+    property q3;
+        $fell(c) |=> q1; // Legal: q1 has no clocking event
+    endproperty
+
+    property q4;
+        $fell(c) |=> q2; // Legal: q2 has clocking event identical to that of the clocking block
+    endproperty
+
+    sequence s1; // Why did the book use a @(posedge clk) in a sequence block to illustrate another obscur problem ????
+        @(posedge clk) b[∗3]; // Illegal: explicit clocking event in clocking block
+    endsequence
+
+endclocking 
+
+-----------------------------------------------------
+
+module examples_NO_default (input logic a, b, c, clk);
+
+    sequence s2;
+        $rose(a) ##[1:5] b;
+    endsequence
+
+    sequence s3;
+        @(negedge clk) s2; // WHY IS THIS NOT A PROPERTY
+    endsequence
+
+    c3: cover property (s3); // Legal: leading clocking event, @(negedge clk), determined from declaration of s3
+
+endmodule
+
+-----------------------------------------------------
+
+assing clkstart = clk && cGate; // Gated clock
+
+sequence s1;
+    req ##2 gnt;
+endsequence
+
+property pr1;
+    @(posedge clkstart) cStart |-> sr1;
+endproperty
+
+reqGnt: assert property (pr1);
+
+-----------------------------------------------------
+
+sequence sdack_;
+    !dack_[*7];
+ensequence
+
+sequence soe_;
+    $fell(oe_) ##1 (!oe_[*8]);
+endsequence
+
+// The expressions in a disable condition are evaluated using the current values of variables (not sampled in preponed region)
+property pwin;
+    @(posedge clk) disable iff(!reset) $fellMode(bMode) |=> sdack_ whithin soe_; // "disable iff" only allowed in a property
+endproperty
+
+-----------------------------------------------------
+
+module M1;
+bit RST;
+
+default disable iff RST;
+    a1: assert property @(posedge clk) propertyP1; // propertyP1 is defined elsewhere
+    a2: assert property (@negedge clk) propertyP2; // propertyP2 is defined elsewhere
+
+endmodule
+
+-----------------------------------------------------
+
+module examples (input logic a, b, clk, rst, rst1);
+    default disable iff rst; // Default disable condition is based on the signal "rst"
+    
+    property p1;
+        disable iff(rst1) a |=> b; // Explicit declaration of disable iff in property p1
+    endproperty
+    
+    // Disable condition is "rst1" - explicitly specified within a1
+    a1 : assert property (@(posedge clk) disable iff (rst1) a |=> b);
+    
+    // Disable condition is "rst1" - explicitly specified within p1
+    a2 : assert property (@(posedge clk) p1);
+    
+    // Disable condition is "rst" - no explicit specification, inferred from default disable iff declaration
+    a3 : assert property (@(posedge clk) a |=> b);
+endmodule
+
+-----------------------------------------------------
+
+module designModule(da, db, dclk);
+    input da, dclk;
+    output logic db;
+        always @(posedge dclk) db <= da;
+endmodule
+
+module propertyModule(pa, pb, pclk);
+    input pa, pb, pclk
+
+    property rc1;
+        pa |-> pb;
+    endproperty
+
+    baseP: assert property(@(posedge pclk) rc1) else $display($stime,,, "\tproperty FAIL");
+endmodule
+
+module test_bindProperty;
+    logic ta, tb, tclk;
+
+    designModule dM (.da(ta), .db(tb), .dclk(tclk));
+
+    // bind designModule propertyModule dpM(.pa(da), .pb(db), .pclk(dclk)) // Bind module (i.e. all instances of the module)
+
+    bind dM propertyModule dpM(.pa(da), .pb(db), .pclk(dclk)) // Bind only dM instance
+
+endmodule
+
+-----------------------------------------------------
+
+module designModule(da, db, dclk);
+    input da, dclk;
+    output logic db;
+
+    reg rda, rdb;
+
+        always @(posedge dclk) db <= da;
+        always @(posedge dclk) rdb <= rda;  
+endmodule
+
+module propertyModule(pa, pb, pclk);
+    input pa, pb, pclk
+
+    property rc1;
+        pa |-> pb;
+    endproperty
+
+    baseP: assert property(@(posedge pclk) rc1) else $display($stime,,, "\tproperty FAIL");
+endmodule
+
+module test_bindProperty;
+    logic ta, tb, tclk;
+
+    designModule dM (.da(ta), .db(tb), .dclk(tclk));
+
+    bind dM propertyModule dpM(.pa(rda), .pb(rdb), .pclk(dclk)) // Full access to internal signals
+
+endmodule
+
+-----------------------------------------------------
+
+property checkiack;
+    @(posedge clk) $rose(intr) |=> $rose(iack);
+endproperty
+
+-----------------------------------------------------
+
+property checkiack;
+    @(posedge clk) $rose(intr) |-> ##1 $rose(iack);
+endproperty
+
+-----------------------------------------------------
+
+sequence sfell(a);
+    $fell(a);
+endsequence
+
+property srose;
+    @(posedge clk) $fell(req) |=> sfell(gnt);
+endproperty
+
+property checkWrData;
+    @(posedge clk) ($fell(we_)) |-> not ($isunknown(wData));
+endproperty
+
+-----------------------------------------------------
+
+alway @(posedge clk) // $stable in procedural block
+beign
+    if ($stable(a)) $display ($stime,,, "\t a stable from previous clk")
+    if ($stable(b)) $display ($stime,,, "\t b stable from previous clk")
+    if ($stable(a) && $stable(b))
+         $display ($stime,,, "\t a, annd b stable from previous clk")
+end 
+
+-----------------------------------------------------
+
+property IV(Sig, numClocks, enb, lastV); // checks for the lastV on Sig, numClocks in the past, gated by enb
+    (lastV == $past(Sig, numClocks, enb)); // $past returns value and not a boolean pass/fail like $fell, $rose, and $stable
+endproperty
+
+assert property (@(posedge clk) done |-> IV(mySig, 2, enb, lastVal)) else 
+    $display($stime,,, "\t FAIL Expected lastVal=%h\n", lastVal)
+
+cover property (@(posedge clk) done |-> IV(mySig, 2, enb, lastVal)) else 
+    $display($stime,,, "\t PASS Expected lastVal=%h\n", lastVal)
+
+always @(posedge clk)
+$display($stime,,, "\t clk=%b mySig=%h past=%h enb=%h done%b", clk, mySig, $past(mySig, 2, enb), done)
+
+-----------------------------------------------------
+
+// For a burst cycle, when the "read" signal is high until burst read is complete that during this period, the rd_addr is incremented by one in every clock cycle.
+
+sequence check_rd_adr;
+    ((rd_addr == $past(rd_addr)+1) && read)[∗0:$] ##1 $fell(read); // Bracket placement mistake ???
+endsequence
+
+sequence read_cycle;
+    ($rose(read) && reset_);
+endsequence
+
+property burst_check;
+    @(posedge clk) read_cycle |-> check_rd_adr;
+endproperty
