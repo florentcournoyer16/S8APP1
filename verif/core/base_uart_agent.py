@@ -9,6 +9,7 @@ from cocotb.binary import BinaryValue
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
+from asyncio import gather, run
 
 
 CRC8_START = 0x0D
@@ -19,7 +20,7 @@ class UartCmd(Enum):
     READ = 0x0
     WRITE = 0x1
 
-class UartResp(Enum):
+class UartRespOPC(Enum):
     NACK = 0x0
     ACK_READ = 0x1
     ACK_WRITE = 0x2
@@ -49,6 +50,12 @@ class UartConfig:
     packet_size: int = 48
     endianness: bool = False
 
+@dataclass
+class UartRespPckt:
+    resp_opc: UartRespOPC
+    res: str
+    reg_addr: RegAddr
+    data: str
 
 class BaseUartAgent:
     def __init__(
@@ -99,26 +106,24 @@ class BaseUartAgent:
             current_crc = ba2int(crc)
         return current_crc
 
-    def _log_resp_packet(self, pkt: BinaryValue) -> None:
+    def _build_resp_packet(self, pkt: BinaryValue) -> UartRespPckt:
         pkt_str = pkt.binstr[::-1]
 
         cmd_start, cmd_end = self.uart_config.cmd_pos
         uart_resp_str: str = hex(int(pkt_str[cmd_start:cmd_end][::-1], 2))
-        uart_resp: UartResp = UartResp(int(uart_resp_str, 16))
+        uart_resp: UartRespOPC= UartRespOPC(int(uart_resp_str, 16))
 
         res_start, res_end = self.uart_config.res_pos
         uart_res: str = hex(int(pkt_str[res_start:res_end][::-1], 2))
 
         addr_start, addr_end = self.uart_config.addr_pos
-        uart_addr: str = hex(int(pkt_str[addr_start:addr_end][::-1], 2))
+        uart_addr_str: str = hex(int(pkt_str[addr_start:addr_end][::-1], 2))
+        uart_addr: RegAddr = RegAddr(int(uart_addr_str, 16))
 
         data_start, data_end = self.uart_config.data_pos
         uart_data: str = hex(int(pkt_str[data_start:data_end][::-1], 2))
-
-        self._log.info(f"UartResp: {uart_resp_str} ({uart_resp})")
-        self._log.info(f"Reserved: {uart_res}")
-        self._log.info(f"AddrReg: {uart_addr}")
-        self._log.info(f"Data: {uart_data}")
+        
+        return UartRespPckt(resp_opc=uart_resp, res=uart_res, reg_addr=uart_addr, data=uart_data)
 
     def attach(self, in_sig: ModifiableObject, out_sig: ModifiableObject, dut_clk: ModifiableObject) -> None:
         self._uart_source = UartSource(
@@ -133,7 +138,7 @@ class BaseUartAgent:
         )
         self._dut_clk = dut_clk
 
-    async def transaction(self, cmd: UartCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 60) -> None:
+    async def transaction(self, cmd: UartCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 60) -> UartRespPckt:
         response: Coroutine = await start(self.wait_for_response(timeout_cycles, retries))
 
         cmd_pkt: BinaryValue = self._build_pkt(cmd=cmd, addr=addr, data=data)
@@ -148,10 +153,9 @@ class BaseUartAgent:
             bigEndian=self._uart_config.endianness
         )
         await self._uart_source.write(crc8_pkt.buff)
-        await response
-
-        self._uart_source.clear()
-        self._uart_sink.clear()
+        # self._uart_source.clear()
+        # self._uart_sink.clear()
+        return await response
 
     async def wait_for_response(self, timeout_cycles: int, retries: int) -> Union[BinaryValue, None]:
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
@@ -166,10 +170,17 @@ class BaseUartAgent:
             # raise RuntimeError(f"Timeout after a wait of {str(timeout_cycles * retries)} clock cycles")
 
         pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
+        await self._uart_sink.read(count=1) # crc8 byte
         pkt = BinaryValue(value=pkt_bytes, n_bits=self.uart_config.packet_size, bigEndian=False)
-        self._log.info(f"After a wait of {str(timeout_cycles * try_counter)} clock cycles, received message:")
-        self._log_resp_packet(pkt)
-        return pkt
+        uart_resp_pkt: UartRespPckt = self._build_resp_packet(pkt)
+
+        self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
+        self._log.info("UartResp: %s", uart_resp_pkt.resp_opc)
+        self._log.info("Reserved: %s", uart_resp_pkt.res)
+        self._log.info("AddrReg: %s", uart_resp_pkt.reg_addr)
+        self._log.info("Data: %s", uart_resp_pkt.data)
+
+        return uart_resp_pkt
 
     async def start_acquisition(self, stop_cond: callable, data: int):
         # Send the EVENT command packet (cmd=0x03)

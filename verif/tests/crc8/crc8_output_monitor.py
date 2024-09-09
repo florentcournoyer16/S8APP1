@@ -4,10 +4,9 @@ from cocotb.handle import SimHandleBase
 
 from typing import Dict
 class CRC8OutputMonitor(BaseMonitor):
-    def __init__(
-            self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase]
-    ):
+    def __init__(self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase]):
         super(CRC8OutputMonitor, self).__init__(clk, valid, datas)
+
     async def _run(self) -> None:
         while True:
             await RisingEdge(self._valid)

@@ -1,0 +1,9 @@
+[INFO ] 2024-09-09 18:35:25 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 44387
+[INFO ] 2024-09-09 18:49:17 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 36663
+[INFO ] 2024-09-09 19:05:07 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 40429
+[INFO ] 2024-09-09 19:09:22 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 37937
+[INFO ] 2024-09-09 19:13:18 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 43603
+[INFO ] 2024-09-09 19:15:11 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 43023
+[INFO ] 2024-09-09 19:21:59 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 44565
+[INFO ] 2024-09-09 19:29:36 [com.cadence.mdv.imc.Main] [main] - Binding debug tools http on port: 38291
+[ERROR] 2024-09-09 19:31:07 [com.cadence.mdv.vsofParser.VSofExceptionHandler] [chunk-processing-thread-pool-1] - vsof exception: Invalid attribute snap_path at /home/couf1001/Documents/github/S8APP1/verif/vmgr_db/chunks/projects/vmgr/of_sessions/example_session.couf1001.24_09_09_15_30_44_6313/45_0f0f1f6c-6ee2-11ef-ac55-b7dac440d76a.chunk line 22

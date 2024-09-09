@@ -1,0 +1,14 @@
+{
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/design/",
+        "${workspaceFolder}/verif/",
+        "${workspaceFolder}/verif/core/",
+        "${workspaceFolder}/tests/",
+    ],
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/design/",
+        "${workspaceFolder}/verif/",
+        "${workspaceFolder}/verif/core/",
+        "${workspaceFolder}/tests/"
+    ]
+}

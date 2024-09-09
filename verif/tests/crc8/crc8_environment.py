@@ -1,8 +1,10 @@
 from base_environment import BaseEnvironment, DutConfig
-from base_uart_agent import RegAddr, UartConfig, UartCmd, BaseUartAgent
+from base_uart_agent import RegAddr, UartConfig, UartCmd, BaseUartAgent, UartRespPckt
 from crc8.crc8_mmc import CRC8MMC
 from cocotb.handle import HierarchyObject
 from crc8.crc8_uart_agent import CRC8UartAgent
+from base_model import BaseModel
+from cocotb import start
 
 
 class CRC8Environment(BaseEnvironment):
@@ -10,12 +12,16 @@ class CRC8Environment(BaseEnvironment):
         self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig,
     ):
         super(CRC8Environment, self).__init__(
-            dut=dut, test_name="CRC8Environment", dut_config=dut_config, uart_config=uart_config, logger_name=type(self).__qualname__
+            dut=dut, test_name="CRC8Environment",
+            dut_config=dut_config,
+            uart_config=uart_config,
+            logger_name=type(self).__qualname__
         )
         
     def _build_env(self) -> None:
         super(CRC8Environment, self)._build_env()
         self._mmc_list.append(CRC8MMC(
+            model=BaseModel(),
             logicblock_instance=self._dut.inst_packet_merger.inst_crc_calc
         ))
 
@@ -27,10 +33,11 @@ class CRC8Environment(BaseEnvironment):
         await self._test_crc8_invalid()
 
     async def _test_crc8_valid(self) -> None:
-        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xCAFE)
-        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        self._uart_agent.crc8_offset = 0
+        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
 
     async def _test_crc8_invalid(self) -> None:
         self._uart_agent.crc8_offset = 1
+        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
         await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
         await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)

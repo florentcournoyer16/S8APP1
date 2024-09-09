@@ -1,0 +1,33 @@
+from base_environment import BaseEnvironment, DutConfig
+from base_uart_agent import RegAddr, UartConfig, UartCmd, BaseUartAgent, UartRespPckt
+from cocotb.handle import HierarchyObject
+
+class RegBankEnvironment(BaseEnvironment):
+    def __init__(
+        self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig,
+    ):
+        super(RegBankEnvironment, self).__init__(
+            dut=dut, 
+            test_name="RegBankEnvironment",
+            dut_config=dut_config,
+            uart_config=uart_config,
+            logger_name=type(self).__qualname__
+        )
+
+    def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
+        return BaseUartAgent(uart_config)
+
+    async def _test(self) -> None:
+        await self._test_read_prod_id()
+        await self._test_rwr_thresh()
+
+    async def _test_read_prod_id(self) -> None:
+        response: UartRespPckt = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.PRODUCT_VER_ID, data=0xCAFE)
+        assert response.data == hex(0xBADEFACE)
+
+    async def _test_rwr_thresh(self) -> None:
+        response = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        assert response.data == hex(0x00000000)
+        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
+        response = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        assert response.data == hex(0xBADE)

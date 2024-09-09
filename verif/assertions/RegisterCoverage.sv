@@ -51,11 +51,14 @@ cov_write_ack_twice : cover property(p_write_ack_twice);
 // documented register address
 // Lab: this covergroup will not work properly. Explore why and update.
 covergroup covg_RegisterAccess
-    @(negedge cov_clk);
+    @(negedge cov_clk && (cov_readEnable || cov_writeEnable) iff(!cov_reset));
 	option.name		= "cov_RegisterAccess";
-    readMode       : coverpoint cov_readEnable;
-    writeMode     : coverpoint cov_writeEnable;
-    addressSpace  : coverpoint cov_address;
+    readMode       : coverpoint cov_readEnable { bins read_bins = {1}; }
+    writeMode      : coverpoint cov_writeEnable  { bins write_bins = {1}; }
+    addressSpace   : coverpoint cov_address { bins address_bins[] = {[0:9]}; }
+	read_coverage  : cross readMode, addressSpace;
+	write_coverage : cross writeMode, addressSpace;
+	all_coverage : cross readMode, writeMode, addressSpace;
 endgroup
 
 covg_RegisterAccess cov_userifCover = new();

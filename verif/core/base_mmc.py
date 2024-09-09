@@ -13,7 +13,7 @@ from cocotb.triggers import RisingEdge, ClockCycles
 from cocotb.log import SimLog
 from base_monitor import BaseMonitor
 from logging import Logger
-
+from base_model import BaseModel
 
 class BaseMMC:
     """
@@ -22,7 +22,8 @@ class BaseMMC:
     Args
         logicblock_instance: handle to an instance of a logic block
     """
-    def __init__(self, logicblock_instance: SimHandleBase, logger_name: str):
+    def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase, logger_name: str):
+        self._model = model
         self._logicblock: SimHandleBase = logicblock_instance
         self._input_mon, self._output_mon = self._set_monitors()
         self._checkercoro: Optional[Task] = None
@@ -46,9 +47,6 @@ class BaseMMC:
         self._checkercoro = None
 
     def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
-        raise NotImplementedError("override this method in daughter class")
-
-    def _model(self) -> bool:
         raise NotImplementedError("override this method in daughter class")
 
     async def _checker(self) -> None:
