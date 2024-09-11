@@ -4,11 +4,15 @@
         "${workspaceFolder}/verif/",
         "${workspaceFolder}/verif/core/",
         "${workspaceFolder}/tests/",
+        "${workspaceFolder}/tests/crc8",
+        "${workspaceFolder}"
     ],
     "python.analysis.extraPaths": [
         "${workspaceFolder}/design/",
         "${workspaceFolder}/verif/",
         "${workspaceFolder}/verif/core/",
-        "${workspaceFolder}/tests/"
+        "${workspaceFolder}/tests/",
+        "${workspaceFolder}/tests/crc8",
+        "${workspaceFolder}"
     ]
 }

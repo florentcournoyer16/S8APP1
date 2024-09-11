@@ -1,5 +1,5 @@
 from base_environment import BaseEnvironment, DutConfig
-from base_uart_agent import RegAddr, UartConfig, UartCmd, BaseUartAgent, UartRespPckt
+from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent, UartRxPckt
 from cocotb.handle import HierarchyObject
 
 class RegBankEnvironment(BaseEnvironment):
@@ -22,12 +22,12 @@ class RegBankEnvironment(BaseEnvironment):
         await self._test_rwr_thresh()
 
     async def _test_read_prod_id(self) -> None:
-        response: UartRespPckt = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.PRODUCT_VER_ID, data=0xCAFE)
+        response: UartRxPckt = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID, data=0xCAFE)
         assert response.data == hex(0xBADEFACE)
 
     async def _test_rwr_thresh(self) -> None:
-        response = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         assert response.data == hex(0x00000000)
-        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
-        response = await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
+        response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         assert response.data == hex(0xBADE)

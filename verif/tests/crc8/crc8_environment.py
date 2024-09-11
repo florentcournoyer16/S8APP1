@@ -1,10 +1,9 @@
 from base_environment import BaseEnvironment, DutConfig
-from base_uart_agent import RegAddr, UartConfig, UartCmd, BaseUartAgent, UartRespPckt
+from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent
 from crc8.crc8_mmc import CRC8MMC
-from cocotb.handle import HierarchyObject
 from crc8.crc8_uart_agent import CRC8UartAgent
+from cocotb.handle import HierarchyObject
 from base_model import BaseModel
-from cocotb import start
 
 
 class CRC8Environment(BaseEnvironment):
@@ -34,10 +33,10 @@ class CRC8Environment(BaseEnvironment):
 
     async def _test_crc8_valid(self) -> None:
         self._uart_agent.crc8_offset = 0
-        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
 
     async def _test_crc8_invalid(self) -> None:
         self._uart_agent.crc8_offset = 1
-        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
-        await self._uart_agent.transaction(cmd=UartCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
-        await self._uart_agent.transaction(cmd=UartCmd.READ, addr=RegAddr.TDC_THRESH)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
+        await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBADE)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
