@@ -80,7 +80,7 @@ class MMC_Template:
 
     def __init__(self, logicblock_instance: SimHandleBase):
         self.dut = logicblock_instance
-        self.log = SimLog("cocotb.MMC.%s" % (type(self).__qualname__))
+        self.log = SimLog("cocotb.MMC.%s" % str(type(self).__qualname__))
 
         self.input_mon = DataValidMonitor_Template(
             clk=self.dut.clk_i,

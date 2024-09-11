@@ -36,7 +36,7 @@ class BaseEnvironment:
         self._uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
         self._test_name: str = test_name
         self._mmc_list: List[BaseMMC] = []
-        self._log = SimLog("cocotb.%s",  logger_name)
+        self._log = SimLog("cocotb.%s" % logger_name)
 
     @property
     def dut_config(self) -> DutConfig:

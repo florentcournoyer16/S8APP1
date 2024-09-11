@@ -1,5 +1,4 @@
 from cocotb import test
-from crc8.crc8_environment import CRC8Environment
 from reg_bank.reg_bank_environment import RegBankEnvironment
 from base_environment import DutConfig
 from base_uart_agent import UartConfig
@@ -10,7 +9,7 @@ import pydevd_pycharm
 
 # Decorator to tell cocotb this function is a coroutine
 @test()
-async def main(dut):
+async def tests_reg_bank(dut):
     print("Starting my_test")
 
     dut_config = DutConfig()

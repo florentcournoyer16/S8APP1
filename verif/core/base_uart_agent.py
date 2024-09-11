@@ -9,21 +9,10 @@ from cocotb.binary import BinaryValue
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
-from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartTxPktStruct, UartRxPktStruct
-
+from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig
 
 CRC8_START = 0x0D
 CRC_POLY = 0xC6
-
-@dataclass
-class UartConfig:
-    baud_rate: int = 1000000
-    frame_size: int = 8
-    packet_size: int = 48
-    big_endian: bool = False
-    tx_pkt_struct: UartTxPktStruct = UartTxPktStruct()
-    rx_pkt_struct: UartRxPktStruct = UartRxPktStruct()
-    
 
 class BaseUartAgent:
     def __init__(
@@ -34,7 +23,7 @@ class BaseUartAgent:
         self._uart_source: Optional[UartSource] = None
         self._uart_sink: Optional[UartSink] = None
         self._dut_clk: Optional[ModifiableObject] = None
-        self._log = SimLog("cocotb.%s",  (type(self).__qualname__))
+        self._log = SimLog("cocotb.%s" % type(self).__qualname__)
 
     @property
     def uart_config(self) -> UartConfig:
@@ -78,21 +67,23 @@ class BaseUartAgent:
     async def transaction(self, cmd: UartTxCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 60) -> UartRxPckt:
         response: Coroutine = await start(self.wait_for_response(timeout_cycles, retries))
 
-        cmd_pkt: BinaryValue = UartTxPckt(
+        tx_pkt: BinaryValue = UartTxPckt(
             cmd=cmd,
             addr=addr,
             data=data,
             uart_config=self.uart_config
         )
+        self._log.info("Preparing to send message:")
+        tx_pkt.log_pkt()
 
-        await self._uart_source.write(cmd_pkt.buff)
+        await self._uart_source.write(tx_pkt.buff)
         await self._uart_source.wait()
 
-        raw_crc8 = self._calc_crc8(cmd_pkt.buff)
+        raw_crc8 = self._calc_crc8(tx_pkt.buff)
         crc8_pkt = BinaryValue(
             value=raw_crc8,
             n_bits=self._uart_config.frame_size,
-            bigEndian=self._uart_config.endianness
+            bigEndian=self._uart_config.big_endian
         )
         await self._uart_source.write(crc8_pkt.buff)
         # self._uart_source.clear()
