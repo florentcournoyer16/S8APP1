@@ -7,7 +7,7 @@ class RegBankEnvironment(BaseEnvironment):
         self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig,
     ):
         super(RegBankEnvironment, self).__init__(
-            dut=dut, 
+            dut=dut,
             test_name="RegBankEnvironment",
             dut_config=dut_config,
             uart_config=uart_config,
@@ -22,7 +22,10 @@ class RegBankEnvironment(BaseEnvironment):
         await self._test_rwr_thresh()
 
     async def _test_read_prod_id(self) -> None:
-        response: UartRxPckt = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
+        response: UartRxPckt = await self._uart_agent.transaction(
+            cmd=UartTxCmd.READ,
+            addr=RegAddr.PRODUCT_VER_ID
+        )
         assert response.data == hex(0xBADEFACE)
 
     async def _test_rwr_thresh(self) -> None:
