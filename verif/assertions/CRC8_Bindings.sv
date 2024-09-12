@@ -135,7 +135,7 @@ endproperty
 CRC_stable_not_valid_a: assert property(CRC_stable_not_valid_p_a) else $display($stime,,, "FAIL"); 
 CRC_stable_not_valid_c: cover  property(CRC_stable_not_valid_p_c) $display($stime,,, "PASS");
 
-// Au coup d'horloge apres que reset soit 1 vaut 0x0D
+// La valeur du crc ne change pas si valide vaut 0
 
 
 

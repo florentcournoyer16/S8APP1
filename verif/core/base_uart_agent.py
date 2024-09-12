@@ -11,6 +11,7 @@ from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
 from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig, UartRxType
 from cocotb.triggers import Event
+from cocotb.queue import Queue
 
 class TDCChannel(Enum):
     CHAN0 = 0x0
@@ -29,6 +30,10 @@ class BaseUartAgent:
         self._uart_sink: Optional[UartSink] = None
         self._dut_clk: Optional[ModifiableObject] = None
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
+        self.test_is_running = 1
+        self.tdc_events: Queue[UartRxPckt] = Queue()
+        self.reg_events: Queue[UartRxPckt] = Queue()
+
 
     @property
     def uart_config(self) -> UartConfig:
@@ -97,9 +102,8 @@ class BaseUartAgent:
         return rx_pkt
 
     async def _wait_for_response(self, timeout_cycles: int, retries: int) -> Union[UartRxPckt, None]:
-        nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
         try_counter = 1
-        while (try_counter < retries) and (self._uart_sink.count() < nb_bytes_expected):
+        while (try_counter < retries) and (self.reg_events.qsize() < 1):
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
@@ -111,39 +115,53 @@ class BaseUartAgent:
             return None
             # raise RuntimeError("Timeout after a wait of %d clock cycles", int(timeout_cycles * retries)")
 
-        pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
-        await self._uart_sink.read(count=1) # crc8 byte
-        pkt: UartRxPckt = UartRxPckt(
-            rx_pkt_bytes=pkt_bytes,
-            uart_config=self.uart_config
-        )
-
         self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
-        pkt.log_pkt()
 
-        return pkt
+        return await self.reg_events.get()
 
     async def listen_tdc(self, channel: TDCChannel) -> tuple[UartRxPckt, UartRxPckt]:
         response: Coroutine = await start(self._wait_for_tdc())
         rx_pkts: tuple[UartRxPckt] = await response
         return rx_pkts
 
-    async def _wait_for_tdc(self) -> list[UartRxPckt]:
+    async def _wait_for_tdc(self, timeout_cycles: int = 1000, num_of_events = 1) -> list[UartRxPckt]:
         pkts: list[UartRxPckt] = []
-        
-        nb_bytes_expected = int((self.uart_config.packet_size / self._uart_config.frame_size + 1))
-        while self._uart_sink.count() < nb_bytes_expected:
+        try_counter = 1
+        while (len(pkts) < num_of_events):
+            if(self.tdc_events.qsize() > 0):
+                pkts.append(await self.tdc_events.get())
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
-
-        pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
-        await self._uart_sink.read(count=1) # crc8 byte
-        pkt: UartRxPckt = UartRxPckt(
-            rx_pkt_bytes=pkt_bytes,
-            uart_config=self.uart_config
-        )
+            try_counter += 1
 
         self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
-        pkt.log_pkt()
-        pkts.append(pkt)
 
-        return (pkts[0], pkts[1])
+        return pkts
+
+    async def sink_uart(self, timeout_cycles: int = 1000):
+        nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
+        while(self.test_is_running):
+            while (self._uart_sink.count() < nb_bytes_expected):
+                await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
+
+            pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
+            await self._uart_sink.read(count=1) # crc8 byte
+            pkt: UartRxPckt = UartRxPckt(
+                rx_pkt_bytes=pkt_bytes,
+                uart_config=self.uart_config
+            )
+
+            if(pkt.type == UartRxType.EVENT):
+                await self.tdc_events.put(pkt)
+            elif(pkt.type == UartRxType.ACK_READ):
+                await self.reg_events.put(pkt)
+                self._log.info("ACK_READ received")
+            elif(pkt.type == UartRxType.ACK_WRITE):
+                await self.reg_events.put(pkt)
+                self._log.info("ACK_WRITE received")
+            elif(pkt.type == UartRxType.NACK):
+                await self.reg_events.put(pkt)
+                self._log.info("NACK received")
+            else:
+                await self.reg_events.put(pkt)
+
+            pkt.log_pkt()

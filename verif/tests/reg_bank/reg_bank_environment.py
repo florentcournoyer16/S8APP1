@@ -1,6 +1,7 @@
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent, UartRxPckt
 from cocotb.handle import HierarchyObject
+from cocotb import start_soon
 
 class RegBankEnvironment(BaseEnvironment):
     def __init__(
@@ -15,7 +16,9 @@ class RegBankEnvironment(BaseEnvironment):
         )
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
-        return BaseUartAgent(uart_config)
+        uart = BaseUartAgent(uart_config)
+        start_soon(uart.sink_uart())
+        return uart
 
     async def _test(self) -> None:
         await self._test_read_prod_id()

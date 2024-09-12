@@ -51,7 +51,9 @@ class BaseEnvironment:
         self._dut_config = dut_config
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
-        return BaseUartAgent(uart_config)
+        uart = BaseUartAgent(uart_config)
+        start(uart.sink_uart())
+        return uart
 
     def _gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
