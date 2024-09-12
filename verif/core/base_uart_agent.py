@@ -9,7 +9,12 @@ from cocotb.binary import BinaryValue
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
-from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig
+from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig, UartRxType
+from cocotb.triggers import Event
+
+class TDCChannel(Enum):
+    CHAN0 = 0x0
+    CHAN1 = 0x1
 
 CRC8_START = 0x0D
 CRC_POLY = 0xC6
@@ -65,7 +70,7 @@ class BaseUartAgent:
         self._dut_clk = dut_clk
 
     async def transaction(self, cmd: UartTxCmd, addr: RegAddr, data: int = 0, timeout_cycles: int = 1000, retries: int = 60) -> UartRxPckt:
-        response: Coroutine = await start(self.wait_for_response(timeout_cycles, retries))
+        response: Coroutine = await start(self._wait_for_response(timeout_cycles, retries))
 
         tx_pkt: BinaryValue = UartTxPckt(
             cmd=cmd,
@@ -91,7 +96,7 @@ class BaseUartAgent:
         rx_pkt: UartRxPckt = await response
         return rx_pkt
 
-    async def wait_for_response(self, timeout_cycles: int, retries: int) -> Union[BinaryValue, None]:
+    async def _wait_for_response(self, timeout_cycles: int, retries: int) -> Union[UartRxPckt, None]:
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
         try_counter = 1
         while (try_counter < retries) and (self._uart_sink.count() < nb_bytes_expected):
@@ -99,7 +104,10 @@ class BaseUartAgent:
             try_counter += 1
 
         if try_counter == retries:
-            self._log.error("Timeout after a wait of %d clock cycles", int(timeout_cycles * retries))
+            self._log.error(
+                "Timeout after a wait of %d clock cycles",
+                int(timeout_cycles * retries)
+            )
             return None
             # raise RuntimeError("Timeout after a wait of %d clock cycles", int(timeout_cycles * retries)")
 
@@ -114,3 +122,28 @@ class BaseUartAgent:
         pkt.log_pkt()
 
         return pkt
+
+    async def listen_tdc(self, channel: TDCChannel) -> tuple[UartRxPckt, UartRxPckt]:
+        response: Coroutine = await start(self._wait_for_tdc())
+        rx_pkts: tuple[UartRxPckt] = await response
+        return rx_pkts
+
+    async def _wait_for_tdc(self) -> list[UartRxPckt]:
+        pkts: list[UartRxPckt] = []
+        
+        nb_bytes_expected = int((self.uart_config.packet_size / self._uart_config.frame_size + 1))
+        while self._uart_sink.count() < nb_bytes_expected:
+            await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
+
+        pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
+        await self._uart_sink.read(count=1) # crc8 byte
+        pkt: UartRxPckt = UartRxPckt(
+            rx_pkt_bytes=pkt_bytes,
+            uart_config=self.uart_config
+        )
+
+        self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
+        pkt.log_pkt()
+        pkts.append(pkt)
+
+        return (pkts[0], pkts[1])

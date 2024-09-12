@@ -57,7 +57,7 @@ class CRC8MMC(BaseMMC):
 
             bytes_aray: bytes = bytes([sample['i_data'] for sample in mon_samples])
 
-            o_match_model = self._model.CRC8(bytes_aray)
+            o_match_model = self._model.crc8(bytes_aray)
 
             o_match_logicblock = await self._output_mon.values.get()
 

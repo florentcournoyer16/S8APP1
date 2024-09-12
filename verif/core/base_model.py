@@ -8,7 +8,7 @@ class BaseModel():
     def __init__(self) -> None:
         self.current_crc = CRC8_START
 
-    def _CRC8_single_cycle(self, new_byte):
+    def _crc8_single_cycle(self, new_byte):
         crc = int2ba(self.current_crc, 8)
         data_bits = int2ba(new_byte, 8)
         poly = int2ba(CRC_POLY, 8)
@@ -19,7 +19,7 @@ class BaseModel():
                 crc >>= 1
         return ba2int(crc)
 
-    def CRC8(self, bytes_array: bytes) -> int:
+    def crc8(self, bytes_array: bytes) -> int:
         self.current_crc = CRC8_START
         crc = bytes_array[len(bytes_array)-1]
         data = bytes_array[:len(bytes_array)-1]
@@ -29,7 +29,7 @@ class BaseModel():
         # self._log.info(f"crc = {[hex(crc)]}")
 
         for current_byte in data:
-            self.current_crc = self._CRC8_single_cycle(current_byte)
+            self.current_crc = self._crc8_single_cycle(current_byte)
             # self._log.info(f"current crc = {hex(current_crc)}")
         if self.current_crc == crc:
             return 1
