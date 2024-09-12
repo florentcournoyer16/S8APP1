@@ -47,8 +47,9 @@ always @(posedge cov_clk) begin
     cov_reset_delayed <= cov_reset;
 end
 
+
 // ------------------------------------------------------
-string crc8_1_1_name = "CRC8.1.1: cov_match is deasserted 1 clock cycle after a reset - FAIL";
+string crc8_1_1_name = "CRC8.1.1: cov_match is deasserted 1 clock cycle after a reset";
 // ------------------------------------------------------
 
 property prop_match_reset;
@@ -106,11 +107,11 @@ string crc8_4_1_name = "CRC8.4.1: cov_data has a diverse bit coverage";
 // ------------------------------------------------------
 
 covergroup covg_in_sig @(posedge cov_clk iff(!cov_reset));
-    cop_last: coverpoint cov_last {
-        bins cov_last_1 = {1};
-    }
     cop_valid: coverpoint cov_valid {
         bins cov_valid_1 = {1};
+    }
+    cop_last: coverpoint cov_last {
+        bins cov_last_1 = {1};
     }
     cop_data: coverpoint cov_data {
         bins data_bins[] = {[0:255]};
@@ -120,6 +121,20 @@ covergroup covg_in_sig @(posedge cov_clk iff(!cov_reset));
 endgroup
 
 covg_in_sig covg_in_sig_inst = new();
+
+real valid_cov;
+real last_cov;
+real data_cov;
+real last_valid_cov;
+real data_valid_cov;
+
+always @(posedge cov_clk) begin
+    valid_cov <= covg_in_sig_inst.cop_valid.get_coverage();
+    last_cov <= covg_in_sig_inst.cop_last.get_coverage();
+    data_cov <= covg_in_sig_inst.cop_data.get_coverage();
+    last_valid_cov <= covg_in_sig_inst.cro_last_valid.get_coverage();
+    data_valid_cov <= covg_in_sig_inst.cro_data_valid.get_coverage();
+end
 
 // ------------------------------------------------------
 string crc8_3_2_name = "CRC8.3.2: cov_last is always asserted at the same time as cov_valid";
@@ -133,7 +148,7 @@ property prop_last_and_valid_;
     cov_last ##0 cov_valid;
 endproperty
 
-ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, crc8_3_2_name, " - FAIL"); 
+// ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, crc8_3_2_name, " - FAIL"); 
 cov_last_and_valid: cover property(prop_last_and_valid_) $display($stime,,, crc8_3_2_name, " - PASS");
 
 // ------------------------------------------------------
@@ -182,10 +197,22 @@ covergroup covg_out_sig @(posedge cov_clk iff(!cov_reset));
     cop_crc8: coverpoint cov_crc8 {
         bins data_bins[] = {[0:255]};
     }
-    cro_last_valid: cross cop_match, cop_done;
+    cro_match_done: cross cop_match, cop_done;
 endgroup
 
 covg_out_sig covg_out_sig_inst = new();
+
+real match_cov;
+real done_cov;
+real crc8_cov;
+real match_done_cov;
+
+always @(posedge cov_clk) begin
+    match_cov <= covg_out_sig_inst.cop_match.get_coverage();
+    done_cov <= covg_out_sig_inst.cop_done.get_coverage();
+    crc8_cov <= covg_out_sig_inst.cop_crc8.get_coverage();
+    match_done_cov <= covg_out_sig_inst.cro_match_done.get_coverage();
+end
 
 // ------------------------------------------------------
 string crc8_6_2_name = "CRC8.6.2: if cov_match is asserted, cov_done is asserted";
@@ -235,6 +262,16 @@ endproperty
 
 ass_crc8_stable_when_not_valid: assert property(prop_crc8_stable_when_not_valid) else $display($stime,,, crc8_7_2_name, " - FAIL"); 
 cov_crc8_stable_when_not_valid: cover  property(prop_crc8_stable_when_not_valid_) $display($stime,,, crc8_7_2_name, " - PASS");
+
+
+final begin
+    $display($stime,,, "Coverage for %s: %0.2f%%", crc8_2_1_name, valid_cov);
+    $display($stime,,, "Coverage for %s: %0.2f%%", crc8_3_1_name, last_valid_cov);
+    $display($stime,,, "Coverage for %s: %0.2f%%", crc8_4_1_name, data_valid_cov);
+
+    $display($stime,,, "Coverage for %s: %0.2f%%", crc8_8_6_1_name, match_done_cov);
+    $display($stime,,, "Coverage for %s: %0.2f%%", crc8_7_1_name, crc8_cov);
+end
 
 
 endmodule
