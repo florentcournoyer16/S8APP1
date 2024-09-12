@@ -58,7 +58,6 @@ covergroup covg_RegisterAccess
     addressSpace   : coverpoint cov_address { bins address_bins[] = {[0:9]}; }
 	read_coverage  : cross readMode, addressSpace;
 	write_coverage : cross writeMode, addressSpace;
-	all_coverage : cross readMode, writeMode, addressSpace;
 endgroup
 
 covg_RegisterAccess cov_userifCover = new();

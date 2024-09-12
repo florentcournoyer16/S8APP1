@@ -34,6 +34,9 @@ class CRC8Environment(BaseEnvironment):
     async def _test_crc8_valid(self) -> None:
         self._uart_agent.crc8_offset = 0
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
+        await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_EVENT_COUNT_RATE)
 
     async def _test_crc8_invalid(self) -> None:
         self._uart_agent.crc8_offset = 1
