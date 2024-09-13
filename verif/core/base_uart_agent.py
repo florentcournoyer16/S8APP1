@@ -1,17 +1,15 @@
 from dataclasses import dataclass, field
+from typing import Optional, Union
 from enum import Enum
 from cocotbext.uart import UartSource, UartSink
 from cocotb.handle import ModifiableObject
-from typing import Optional, Union
-from cocotb import start
-from cocotb import Coroutine
+from cocotb import start, Coroutine, Task, start_soon
 from cocotb.binary import BinaryValue
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
-from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig, UartRxType
-from cocotb.triggers import Event
 from cocotb.queue import Queue
+from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig, UartRxType
 
 class TDCChannel(Enum):
     CHAN0 = 0x0
@@ -30,9 +28,11 @@ class BaseUartAgent:
         self._uart_sink: Optional[UartSink] = None
         self._dut_clk: Optional[ModifiableObject] = None
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
-        self.test_is_running = 1
-        self.tdc_events: Queue[UartRxPckt] = Queue()
-        self.reg_events: Queue[UartRxPckt] = Queue()
+        
+        self._tdc_events: Queue[UartRxPckt] = Queue()
+        self._reg_events: Queue[UartRxPckt] = Queue()
+        
+        self._uart_rx_listenner: Optional[Task] = None
 
 
     @property
@@ -103,7 +103,7 @@ class BaseUartAgent:
 
     async def _wait_for_response(self, timeout_cycles: int, retries: int) -> Union[UartRxPckt, None]:
         try_counter = 1
-        while (try_counter < retries) and (self.reg_events.qsize() < 1):
+        while (try_counter < retries) and (self._reg_events.qsize() < 1):
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
@@ -117,7 +117,7 @@ class BaseUartAgent:
 
         self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
 
-        return await self.reg_events.get()
+        return await self._reg_events.get()
 
     async def listen_tdc(self, channel: TDCChannel) -> tuple[UartRxPckt, UartRxPckt]:
         response: Coroutine = await start(self._wait_for_tdc())
@@ -128,8 +128,8 @@ class BaseUartAgent:
         pkts: list[UartRxPckt] = []
         try_counter = 1
         while (len(pkts) < num_of_events):
-            if(self.tdc_events.qsize() > 0):
-                pkts.append(await self.tdc_events.get())
+            if(self._tdc_events.qsize() > 0):
+                pkts.append(await self._tdc_events.get())
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
@@ -137,9 +137,9 @@ class BaseUartAgent:
 
         return pkts
 
-    async def sink_uart(self, timeout_cycles: int = 1000):
+    async def _listen_uart_rx(self, timeout_cycles: int = 1000):
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
-        while(self.test_is_running):
+        while(True):
             while (self._uart_sink.count() < nb_bytes_expected):
                 await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
 
@@ -150,15 +150,22 @@ class BaseUartAgent:
                 uart_config=self.uart_config
             )
 
-            if(pkt.type == UartRxType.EVENT):
-                await self.tdc_events.put(pkt)
-            # elif(pkt.type == UartRxType.ACK_READ):
-            #     await self.reg_events.put(pkt)
-            # elif(pkt.type == UartRxType.ACK_WRITE):
-            #     await self.reg_events.put(pkt)
-            # elif(pkt.type == UartRxType.NACK):
-            #     await self.reg_events.put(pkt)
+            if pkt.type == UartRxType.EVENT:
+                await self._tdc_events.put(pkt)
             else:
-                await self.reg_events.put(pkt)
+                await self._reg_events.put(pkt)
 
             pkt.log_pkt()
+    
+    def start_uart_rx_listenner(self) -> None:
+        """Starts monitors, model, and checker coroutine"""
+        if self._uart_rx_listenner is not None:
+            raise RuntimeError("Monitor already started")
+        self._uart_rx_listenner = start_soon(self._listen_uart_rx())
+
+    def stop_uart_rx_listenner(self) -> None:
+        """Stops everything"""
+        if self._uart_rx_listenner is None:
+            raise RuntimeError("Monitor never started")
+        self._uart_rx_listenner.kill()
+        self._uart_rx_listenner = None

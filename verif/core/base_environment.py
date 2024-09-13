@@ -5,11 +5,11 @@ from typing import List
 from os import environ
 from cocotb.clock import Clock
 from cocotb.handle import HierarchyObject
-from base_uart_agent import BaseUartAgent, UartConfig
-from cocotb import start, start_soon
+from cocotb import start
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
 from base_mmc import BaseMMC
+from base_uart_agent import BaseUartAgent, UartConfig
 
 @dataclass
 class DutConfig:
@@ -54,11 +54,14 @@ class BaseEnvironment:
         return BaseUartAgent(uart_config)
 
     def _gen_config(self) -> None:
-        PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
-        self._log.info(f"PYCHARMDEBUG={PYCHARMDEBUG}")
-        if PYCHARMDEBUG == "enabled":
+        pycharm_debug = environ.get("PYCHARMDEBUG")
+        self._log.info("PYCHARMDEBUG=%s", pycharm_debug)
+        if pycharm_debug == "enabled":
             pydevd_pycharm.settrace(
-                "localhost", port=50101, stdoutToServer=True, stderrToServer=True
+                "localhost",
+                port=50101,
+                stdoutToServer=True,
+                stderrToServer=True
             )
             self._log.info("Debugger entry point")
 
@@ -72,7 +75,6 @@ class BaseEnvironment:
             out_sig=self._dut.out_sig,
             dut_clk=self._dut.clk,
         )
-        start_soon(self._uart_agent.sink_uart())
 
     async def _reset(self) -> None:
         self._dut.reset.value = 1
@@ -85,11 +87,12 @@ class BaseEnvironment:
 
     async def _test(self):
         raise NotImplementedError("Override this method in daughter class")
-    
+
     async def run(self) -> None:
-        self._log.info(f"Starting test : {self._test_name}")
+        self._log.info("Starting test: %s", self._test_name)
         self._gen_config()
         self._build_env()
+        self._uart_agent.start_uart_rx_listenner()
         for mmc in self._mmc_list:
             mmc.start()
         await self._reset()
@@ -97,3 +100,5 @@ class BaseEnvironment:
         await self._test()
         for mmc in self._mmc_list:
             mmc.stop()
+        self._uart_agent.stop_uart_rx_listenner()
+        
