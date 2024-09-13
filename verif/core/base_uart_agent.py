@@ -28,9 +28,9 @@ class BaseUartAgent:
         self._uart_sink: Optional[UartSink] = None
         self._dut_clk: Optional[ModifiableObject] = None
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
-        
-        self._tdc_events: Queue[UartRxPckt] = Queue()
-        self._reg_events: Queue[UartRxPckt] = Queue()
+
+        self._tdc_queue: Queue[UartRxPckt] = Queue()
+        self._reg_queue: Queue[UartRxPckt] = Queue()
         
         self._uart_rx_listenner: Optional[Task] = None
 
@@ -103,7 +103,7 @@ class BaseUartAgent:
 
     async def _wait_for_response(self, timeout_cycles: int, retries: int) -> Union[UartRxPckt, None]:
         try_counter = 1
-        while (try_counter < retries) and (self._reg_events.qsize() < 1):
+        while (try_counter < retries) and (self._reg_queue.qsize() < 1):
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
@@ -116,28 +116,33 @@ class BaseUartAgent:
             # raise RuntimeError("Timeout after a wait of %d clock cycles", int(timeout_cycles * retries)")
 
         self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
+        pkt: UartRxPckt = await self._reg_queue.get()
+        pkt.log_pkt()
 
-        return await self._reg_events.get()
+        return pkt
 
-    async def listen_tdc(self, channel: TDCChannel) -> tuple[UartRxPckt, UartRxPckt]:
-        response: Coroutine = await start(self._wait_for_tdc())
+    async def tdc_transaction(self, num_events: int = 2, timeout_cycles: int = 1000, retries: int = 60) -> list[UartRxPckt]:
+        response: Coroutine = await start(self._wait_for_tdc(num_events, timeout_cycles, retries))
         rx_pkts: tuple[UartRxPckt] = await response
         return rx_pkts
 
-    async def _wait_for_tdc(self, timeout_cycles: int = 1000, num_of_events = 1) -> list[UartRxPckt]:
+    async def _wait_for_tdc(self, num_of_events: int, timeout_cycles: int, retries: int ) -> list[UartRxPckt]:
         pkts: list[UartRxPckt] = []
         try_counter = 1
-        while (len(pkts) < num_of_events):
-            if(self._tdc_events.qsize() > 0):
-                pkts.append(await self._tdc_events.get())
+        while (len(pkts) < num_of_events) and (try_counter <  retries):
+            if(self._tdc_queue.qsize() > 0):
+                pkts.append(await self._tdc_queue.get())
+                continue
             await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
             try_counter += 1
 
-        self._log.info("After a wait of %s clock cycles, received message:", str(timeout_cycles * try_counter))
+        self._log.info("After a wait of %s clock cycles, received message(s):", str(timeout_cycles * try_counter))
+        for pkt in pkts:
+            pkt.log_pkt()
 
         return pkts
 
-    async def _listen_uart_rx(self, timeout_cycles: int = 1000):
+    async def _listen_uart_rx(self, timeout_cycles: int = 1000) -> None:
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
         while(True):
             while (self._uart_sink.count() < nb_bytes_expected):
@@ -151,20 +156,18 @@ class BaseUartAgent:
             )
 
             if pkt.type == UartRxType.EVENT:
-                await self._tdc_events.put(pkt)
+                await self._tdc_queue.put(pkt)
             else:
-                await self._reg_events.put(pkt)
-
-            pkt.log_pkt()
+                await self._reg_queue.put(pkt)
     
     def start_uart_rx_listenner(self) -> None:
-        """Starts monitors, model, and checker coroutine"""
+        """Starts listen_uart_rx coroutine"""
         if self._uart_rx_listenner is not None:
             raise RuntimeError("Monitor already started")
         self._uart_rx_listenner = start_soon(self._listen_uart_rx())
 
     def stop_uart_rx_listenner(self) -> None:
-        """Stops everything"""
+        """Stops listen_uart_rx coroutine"""
         if self._uart_rx_listenner is None:
             raise RuntimeError("Monitor never started")
         self._uart_rx_listenner.kill()

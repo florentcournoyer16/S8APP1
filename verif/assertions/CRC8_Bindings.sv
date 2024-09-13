@@ -141,14 +141,14 @@ string crc8_3_2_name = "CRC8.3.2: cov_last is always asserted at the same time a
 // ------------------------------------------------------
 
 property prop_last_and_valid;
-    cov_last |-> cov_valid;
+    $fell(cov_last) |-> $fell(cov_valid); // TEST WAS MODIFIED AFTER SPEAKING WITH MARC-ANDRE
 endproperty
 
 property prop_last_and_valid_;
-    cov_last ##0 cov_valid;
+    $fell(cov_last) ##0 $fell(cov_valid); // TEST WAS MODIFIED AFTER SPEAKING WITH MARC-ANDRE
 endproperty
 
-// ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, "\t %-100s \t FAIL", crc8_3_2_name); 
+ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, "\t %-100s \t FAIL", crc8_3_2_name); 
 cov_last_and_valid: cover property(prop_last_and_valid_) $display($stime,,, "\t %-100s \t PASS", crc8_3_2_name);
 
 // ------------------------------------------------------

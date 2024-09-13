@@ -31,9 +31,10 @@ class TDCEnvironment(BaseEnvironment):
         )
         assert response_ch1.type == UartRxType.ACK_WRITE
 
-        pkts: list[UartRxPckt] = await self._uart_agent.listen_tdc(TDCChannel.CHAN0)
-
-        pulse0 = PulseConfig(width=400, delay=400)
+        pulse0 = PulseConfig(width=50, delay=120)
         await self.trigger_agent.single_pulse(pulse0)
 
-        self._log.info(pkts[0])
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
+        
+        assert pkts[0].data == hex(0x4e2)
+        assert pkts[1].data == hex(0x7a882a)

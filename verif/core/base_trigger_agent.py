@@ -6,12 +6,13 @@ from cocotb.triggers import Timer
 class PulseConfig:
     width: int
     delay: int
-    units: str = "ps"
+    units: str = "ns"
 
 class BaseTriggerAgent():
-    def __init__(self, trig : ModifiableObject):
+    def __init__(self, trig: ModifiableObject):
         self._trig = trig
-        self._trig = 0
+        self._trig[0].value = 0
+        self._trig[1].value = 0
 
     async def single_pulse(self, pulse : PulseConfig):
         await Timer(pulse.delay, units=pulse.units)
