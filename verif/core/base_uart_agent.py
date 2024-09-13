@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import Optional, Union
 from enum import Enum
 from cocotbext.uart import UartSource, UartSink
@@ -142,13 +141,12 @@ class BaseUartAgent:
 
         return pkts
 
-    async def _listen_uart_rx(self, timeout_cycles: int = 1000) -> None:
-        nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size + 1)
+    async def _listen_uart_rx(self) -> None:
+        nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size)
         while(True):
-            while (self._uart_sink.count() < nb_bytes_expected):
-                await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
-
-            pkt_bytes = bytes(await self._uart_sink.read(count=int(self.uart_config.packet_size / self._uart_config.frame_size)))
+            while self._uart_sink.count() < nb_bytes_expected + 1:
+                await ClockCycles(self._dut_clk, num_cycles=1, rising=True)
+            pkt_bytes = bytes(await self._uart_sink.read(count=nb_bytes_expected))
             await self._uart_sink.read(count=1) # crc8 byte
             pkt: UartRxPckt = UartRxPckt(
                 rx_pkt_bytes=pkt_bytes,

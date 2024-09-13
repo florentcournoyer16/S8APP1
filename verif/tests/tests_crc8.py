@@ -10,8 +10,6 @@ import pydevd_pycharm
 # Decorator to tell cocotb this function is a coroutine
 @test()
 async def tests_crc8(dut):
-    print("Starting my_test")
-
     dut_config = DutConfig()
     uart_config = UartConfig()
     tests = []
