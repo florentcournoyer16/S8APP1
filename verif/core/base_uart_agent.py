@@ -164,7 +164,7 @@ class BaseUartAgent:
         """Starts listen_uart_rx coroutine"""
         if self._uart_rx_listenner is not None:
             raise RuntimeError("Monitor already started")
-        self._uart_rx_listenner = start_soon(self._listen_uart_rx())
+        self._uart_rx_listenner = start_soon(coro=self._listen_uart_rx())
 
     def stop_uart_rx_listenner(self) -> None:
         """Stops listen_uart_rx coroutine"""

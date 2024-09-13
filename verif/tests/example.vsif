@@ -24,5 +24,5 @@ group example_group {
 
     // test sanity {count : 1;};
     // test sanity_random {count : 10;};
-    test main {count : 1;};
+    test tests_tdc {count : 1;};
 };

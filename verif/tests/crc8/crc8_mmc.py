@@ -3,16 +3,11 @@
 
 # adapted from https://github.com/cocotb/cocotb/blob/stable/1.9/examples/matrix_multiplier/tests/test_matrix_multiplier.py
 
-from typing import Any, Dict, List, Optional
-
-from cocotb import start_soon, Task
-from cocotb.clock import Clock
+from typing import Dict, List
 from cocotb.handle import SimHandleBase
-from cocotb.queue import Queue
-from cocotb.triggers import RisingEdge, ClockCycles
+from cocotb.triggers import ClockCycles
 from crc8.crc8_output_monitor import CRC8OutputMonitor
 from base_mmc import BaseMMC
-from utils_verif import calculateCRC8_singleCycle
 from base_monitor import BaseMonitor
 from base_model import BaseModel
 
