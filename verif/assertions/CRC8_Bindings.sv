@@ -6,11 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 
-bind CRC8816 CRC8_Bindings
-    #(.DATA_LENGTH(DATA_LENGTH),
-    .DATA_LENGTH_BYTES(DATA_LENGTH_BYTES))
-
-     inst_CRC8_Bindings(
+bind CRC8816 CRC8_Bindings inst_CRC8_Bindings(
         .cov_reset(reset),
         .cov_clk(clk),
 
@@ -23,9 +19,7 @@ bind CRC8816 CRC8_Bindings
         .cov_crc8(o_crc8)
 	);
 
-module CRC8_Bindings#(
-    DATA_LENGTH = 32,
-    DATA_LENGTH_BYTES = DATA_LENGTH/8)
+module CRC8_Bindings
 	(
 	input logic cov_reset,
 	input logic cov_clk,
@@ -36,7 +30,7 @@ module CRC8_Bindings#(
 
     input logic cov_match,
     input logic cov_done,
-    input logic [DATA_LENGTH-1:0] cov_crc8
+    input logic [7:0] cov_crc8
 	);
 
 default clocking DEFCLK @(posedge cov_clk);
