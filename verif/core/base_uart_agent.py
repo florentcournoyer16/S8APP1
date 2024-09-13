@@ -152,15 +152,12 @@ class BaseUartAgent:
 
             if(pkt.type == UartRxType.EVENT):
                 await self.tdc_events.put(pkt)
-            elif(pkt.type == UartRxType.ACK_READ):
-                await self.reg_events.put(pkt)
-                self._log.info("ACK_READ received")
-            elif(pkt.type == UartRxType.ACK_WRITE):
-                await self.reg_events.put(pkt)
-                self._log.info("ACK_WRITE received")
-            elif(pkt.type == UartRxType.NACK):
-                await self.reg_events.put(pkt)
-                self._log.info("NACK received")
+            # elif(pkt.type == UartRxType.ACK_READ):
+            #     await self.reg_events.put(pkt)
+            # elif(pkt.type == UartRxType.ACK_WRITE):
+            #     await self.reg_events.put(pkt)
+            # elif(pkt.type == UartRxType.NACK):
+            #     await self.reg_events.put(pkt)
             else:
                 await self.reg_events.put(pkt)
 

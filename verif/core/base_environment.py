@@ -6,7 +6,7 @@ from os import environ
 from cocotb.clock import Clock
 from cocotb.handle import HierarchyObject
 from base_uart_agent import BaseUartAgent, UartConfig
-from cocotb import start
+from cocotb import start, start_soon
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
 from base_mmc import BaseMMC
@@ -51,9 +51,7 @@ class BaseEnvironment:
         self._dut_config = dut_config
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
-        uart = BaseUartAgent(uart_config)
-        start(uart.sink_uart())
-        return uart
+        return BaseUartAgent(uart_config)
 
     def _gen_config(self) -> None:
         PYCHARMDEBUG = environ.get("PYCHARMDEBUG")
@@ -74,6 +72,7 @@ class BaseEnvironment:
             out_sig=self._dut.out_sig,
             dut_clk=self._dut.clk,
         )
+        start_soon(self._uart_agent.sink_uart())
 
     async def _reset(self) -> None:
         self._dut.reset.value = 1
