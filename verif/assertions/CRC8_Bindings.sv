@@ -43,7 +43,8 @@ end
 
 
 // ------------------------------------------------------
-string crc8_1_1_name = "CRC8.1.1: cov_match is deasserted 1 clock cycle after a reset";
+string crc8_1_1_name = "CRC8.1.1";
+string crc8_1_1_description = "cov_match is deasserted 1 clock cycle after a reset";
 // ------------------------------------------------------
 
 property prop_match_reset;
@@ -57,11 +58,12 @@ endproperty
 string test_name_pass = "test_name\t PASS";
 
 
-ass_match_reset: assert property(prop_match_reset) else $display($stime,,, "\t %-100s \t FAIL", crc8_1_1_name); 
-cov_match_reset: cover property(prop_match_reset_) $display($stime,,, "\t %-100s \t PASS", crc8_1_1_name);
+ass_match_reset: assert property(prop_match_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_1_name); 
+cov_match_reset: cover property(prop_match_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_1_name);
 
 // ------------------------------------------------------
-string crc8_1_2_name = "CRC8.1.2: cov_done is deasserted 1 clock cycles after a reset";
+string crc8_1_2_name = "CRC8.1.2";
+string crc8_1_2_description = "cov_done is deasserted 1 clock cycles after a reset";
 // ------------------------------------------------------
 
 property prop_done_after_reset;
@@ -72,11 +74,12 @@ property prop_done_after_reset_;
     $rose(cov_reset) ##1 !cov_done;
 endproperty
 
-ass_done_after_reset: assert property(prop_done_after_reset) else $display($stime,,, "\t %-100s \t FAIL", crc8_1_2_name); 
-cov_done_after_reset: cover property(prop_done_after_reset_) $display($stime,,, "\t %-100s \t PASS", crc8_1_2_name);
+ass_done_after_reset: assert property(prop_done_after_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_2_name); 
+cov_done_after_reset: cover property(prop_done_after_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_2_name);
 
 // ------------------------------------------------------
-string crc8_1_3_name = "CRC8.1.3: cov_crc8 is eq. to 0x0D 1 clock cycles after a reset";
+string crc8_1_3_name = "CRC8.1.3";
+string crc8_1_3_description = "cov_crc8 is eq. to 0x0D 1 clock cycles after a reset";
 // ------------------------------------------------------
 
 sequence seq_crc8_reset_val;
@@ -91,13 +94,16 @@ property prop_crc8_reset_val_;
     $rose(cov_reset) ##1 seq_crc8_reset_val;
 endproperty
 
-ass_crc8_reset_val: assert property(prop_crc8_reset_val) else $display($stime,,, "\t %-100s \t FAIL", crc8_1_3_name); 
-cov_crc8_reset_val: cover property(prop_crc8_reset_val_) $display($stime,,, "\t %-100s \t PASS", crc8_1_3_name);
+ass_crc8_reset_val: assert property(prop_crc8_reset_val) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_3_name); 
+cov_crc8_reset_val: cover property(prop_crc8_reset_val_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_3_name);
 
 // ------------------------------------------------------
-string crc8_2_1_name = "CRC8.2.1: cov_valid is asserted at least once";
-string crc8_3_1_name = "CRC8.3.1: cov_last is asserted at least once";
-string crc8_4_1_name = "CRC8.4.1: cov_data has a diverse bit coverage";
+string crc8_2_1_name = "CRC8.2.1";
+string crc8_2_1_description = "cov_valid is asserted at least once";
+string crc8_3_1_name = "CRC8.3.1";
+string crc8_3_1_description = "cov_last is asserted at least once";
+string crc8_4_1_name = "CRC8.4.1";
+string crc8_4_1_description = "cov_data has a diverse bit coverage";
 // ------------------------------------------------------
 
 covergroup covg_in_sig @(posedge cov_clk iff(!cov_reset));
@@ -131,7 +137,8 @@ always @(posedge cov_clk) begin
 end
 
 // ------------------------------------------------------
-string crc8_3_2_name = "CRC8.3.2: cov_last is always asserted at the same time as cov_valid";
+string crc8_3_2_name = "CRC8.3.2";
+string crc8_3_2_description = "cov_last is always asserted at the same time as cov_valid";
 // ------------------------------------------------------
 
 property prop_last_and_valid;
@@ -142,11 +149,12 @@ property prop_last_and_valid_;
     $fell(cov_last) ##0 $fell(cov_valid); // TEST WAS MODIFIED AFTER SPEAKING WITH MARC-ANDRE
 endproperty
 
-ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, "\t %-100s \t FAIL", crc8_3_2_name); 
-cov_last_and_valid: cover property(prop_last_and_valid_) $display($stime,,, "\t %-100s \t PASS", crc8_3_2_name);
+ass_last_and_valid: assert property(prop_last_and_valid) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_3_2_name, crc8_3_2_description); 
+cov_last_and_valid: cover property(prop_last_and_valid_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_3_2_name, crc8_3_2_description);
 
 // ------------------------------------------------------
-string crc8_5_1_name = "CRC8.5.1: cov_last asserting implies that cov_done will assert in the next 2 clock cycles";
+string crc8_5_1_name = "CRC8.5.1";
+string crc8_5_1_description = "cov_last asserting implies that cov_done will assert in the next 2 clock cycles";
 // ------------------------------------------------------
 
 property prop_last_then_done; 
@@ -157,11 +165,12 @@ property prop_last_then_done_;
     disable iff(cov_reset_delayed) cov_last ##[1:2] $rose(cov_done);
 endproperty
 
-ass_last_then_done: assert property(prop_last_then_done) else $display($stime,,, "\t %-100s \t FAIL", crc8_5_1_name); 
-cov_last_then_done: cover property(prop_last_then_done_) $display($stime,,, "\t %-100s \t PASS", crc8_5_1_name);
+ass_last_then_done: assert property(prop_last_then_done) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_5_1_name, crc8_5_1_description); 
+cov_last_then_done: cover property(prop_last_then_done_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_5_1_name, crc8_5_1_description);
 
 // ------------------------------------------------------
-string crc8_5_2_name = "CRC8.5.2: cov_done is only deasserted 1 clock cycle after a reset";
+string crc8_5_2_name = "CRC8.5.2";
+string crc8_5_2_description = "cov_done is only deasserted 1 clock cycle after a reset"
 // ------------------------------------------------------
 
 property prop_done_without_reset;
@@ -172,12 +181,14 @@ property prop_done_without_reset_;
     (cov_done && !cov_reset) ##1 cov_done
 endproperty
 
-ass_done_without_reset: assert property(prop_done_without_reset) else $display($stime,,, "\t %-100s \t FAIL", crc8_5_2_name); 
-cov_done_without_reset: cover property(prop_done_without_reset_) $display($stime,,, "\t %-100s \t PASS", crc8_5_2_name);
+ass_done_without_reset: assert property(prop_done_without_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_5_2_name, crc8_5_2_description); 
+cov_done_without_reset: cover property(prop_done_without_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_5_2_name, crc8_5_2_description);
 
 // ------------------------------------------------------
-string crc8_8_6_1_name = "CRC8.8.6.1: o_match is both 0 and 1 when o_done is asserted";
-string crc8_7_1_name = "CRC8.7.1: cov_crc8 has a diverse bit coverage";
+string crc8_8_6_1_name = "CRC8.8.6.1";
+string crc8_8_6_1_description = "o_match is both 0 and 1 when o_done is asserted";
+string crc8_7_1_name = "CRC8.7.1";
+string crc8_7_1_description = "cov_crc8 has a diverse bit coverage";
 // ------------------------------------------------------
 
 covergroup covg_out_sig @(posedge cov_clk iff(!cov_reset));
@@ -209,7 +220,8 @@ always @(posedge cov_clk) begin
 end
 
 // ------------------------------------------------------
-string crc8_6_2_name = "CRC8.6.2: if cov_match is asserted, cov_done is asserted";
+string crc8_6_2_name = "CRC8.6.2";
+string crc8_6_2_description = "if cov_match is asserted, cov_done is asserted";
 // ------------------------------------------------------
 
 property prop_match_and_done;
@@ -220,11 +232,12 @@ property prop_match_and_done_;
     disable iff(cov_reset_delayed) cov_match ##0 cov_done;
 endproperty
 
-ass_match_and_done: assert property(prop_match_and_done) else $display($stime,,, "\t %-100s \t FAIL", crc8_6_2_name); 
-cov_match_and_done: cover property(prop_match_and_done_) $display($stime,,, "\t %-100s \t PASS", crc8_6_2_name);
+ass_match_and_done: assert property(prop_match_and_done) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_6_2_name, crc8_6_2_description); 
+cov_match_and_done: cover property(prop_match_and_done_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_6_2_name, crc8_6_2_description);
 
 // ------------------------------------------------------
-string crc8_6_6_name = "CRC8.6.6: cov_match asserting implies that cov_last was asserted within the past 2 cycles";
+string crc8_6_6_name = "CRC8.6.6";
+string crc8_6_6_description = "cov_match asserting implies that cov_last was asserted within the past 2 cycles";
 // ------------------------------------------------------
 
 sequence seq_match_after_last;
@@ -239,11 +252,12 @@ property prop_match_after_last_;
    $rose(cov_match) ##0 seq_match_after_last;
 endproperty
 
-ass_match_after_last: assert property(prop_match_after_last) else $display($stime,,, "\t %-100s \t FAIL", crc8_6_6_name); 
-cov_match_after_last: cover property(prop_match_after_last_) $display($stime,,, "\t %-100s \t PASS", crc8_6_6_name);
+ass_match_after_last: assert property(prop_match_after_last) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_6_6_name, crc8_6_6_description); 
+cov_match_after_last: cover property(prop_match_after_last_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_6_6_name, crc8_6_6_description);
 
 // ------------------------------------------------------
-string crc8_7_2_name = "CRC8.7.2: cov_crc is stable when cov_valid is deasserted";
+string crc8_7_2_name = "CRC8.7.2";
+string crc8_7_2_description = "cov_crc is stable when cov_valid is deasserted";
 // ------------------------------------------------------
 
 property prop_crc8_stable_when_not_valid;
@@ -254,17 +268,17 @@ property prop_crc8_stable_when_not_valid_;
     disable iff(cov_reset) !cov_valid ##1 $stable(cov_crc8);
 endproperty
 
-ass_crc8_stable_when_not_valid: assert property(prop_crc8_stable_when_not_valid) else $display($stime,,, "\t %-100s \t FAIL", crc8_7_2_name); 
-cov_crc8_stable_when_not_valid: cover  property(prop_crc8_stable_when_not_valid_) $display($stime,,, "\t %-100s \t PASS", crc8_7_2_name);
+ass_crc8_stable_when_not_valid: assert property(prop_crc8_stable_when_not_valid) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_7_2_name, crc8_7_2_description); 
+cov_crc8_stable_when_not_valid: cover  property(prop_crc8_stable_when_not_valid_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_7_2_name, crc8_7_2_description);
 
 
 final begin
-    $display($stime,,, "\t %-100s \t %0.2f%%", crc8_2_1_name, valid_cov);
-    $display($stime,,, "\t %-100s \t %0.2f%%", crc8_3_1_name, last_valid_cov);
-    $display($stime,,, "\t %-100s \t %0.2f%%", crc8_4_1_name, data_valid_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", crc8_2_1_name, crc8_2_1_description, valid_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", crc8_3_1_name, crc8_3_1_description, last_valid_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", crc8_4_1_name, crc8_4_1_description, data_valid_cov);
 
-    $display($stime,,, "\t %-100s \t %0.2f%%", crc8_8_6_1_name, match_done_cov);
-    $display($stime,,, "\t %-100s \t %0.2f%%", crc8_7_1_name, crc8_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", crc8_8_6_1_name, crc8_8_6_1_description, match_done_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", crc8_7_1_name, crc8_7_1_description, crc8_cov);
 end
 
 
