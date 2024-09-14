@@ -6,7 +6,7 @@
 from typing import Dict, List
 from cocotb.handle import SimHandleBase
 from cocotb.triggers import ClockCycles
-from tests.crc8.crc8_monitor import CRC8OutputMonitor, CRC8InputMonitor
+from crc8.crc8_monitor import CRC8OutputMonitor, CRC8InputMonitor
 from base_mmc import BaseMMC
 from base_monitor import BaseMonitor
 from base_model import BaseModel

@@ -16,9 +16,7 @@ class RegBankEnvironment(BaseEnvironment):
         )
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
-        uart = BaseUartAgent(uart_config)
-        start_soon(uart.sink_uart())
-        return uart
+        return BaseUartAgent(uart_config)
 
     async def _test(self) -> None:
         await self._test_read_prod_id()
