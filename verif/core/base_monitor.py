@@ -23,7 +23,7 @@ class BaseMonitor:
     """
 
     def __init__(
-        self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase]
+        self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase], logger_name: str
     ):
         self.values = Queue[Dict[str, int]]()
         self._clk = clk
@@ -31,7 +31,7 @@ class BaseMonitor:
         self._datas = datas
         self._coro = None  # is monitor running? False if "None"
 
-        self._log = SimLog("cocotb.%s" % type(self).__qualname__)
+        self._log = SimLog("cocotb.%s" %  logger_name)
 
     def start(self) -> None:
         if self._coro is not None:
@@ -45,14 +45,7 @@ class BaseMonitor:
         self._coro = None
 
     async def _run(self) -> None:
-        while True:
-            await RisingEdge(self._clk)
-            # this condition decides when to record the signal states
-            if self._valid.value.binstr != "1":
-                # skip whatever comes after, and start the while loop again
-                continue
-            # store the samples, as formatted by the _sample method
-            self.values.put_nowait(self._sample())
+        raise NotImplementedError("Override this method in daughter class")
 
     def _sample(self) -> Dict[str, Any]:
         """

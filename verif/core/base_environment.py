@@ -18,7 +18,8 @@ class DutConfig:
     clk_units = "ns"
     in_sig: int = 0
     reset_cyclic: int = 0
-    sipms: List[int] = field(default_factory=lambda: [0, 0])
+    sipm0: int = 0
+    sipm1: int = 0
     clk_MHz: bool = 0
 
 
@@ -59,7 +60,7 @@ class BaseEnvironment:
         if pycharm_debug == "enabled":
             pydevd_pycharm.settrace(
                 "localhost",
-                port=50101,
+                port=5052,
                 stdoutToServer=True,
                 stderrToServer=True
             )
@@ -68,7 +69,8 @@ class BaseEnvironment:
     def _build_env(self) -> None:
         self._dut.in_sig.value = self.dut_config.in_sig
         self._dut.resetCyclic.value = self.dut_config.reset_cyclic
-        self._dut.sipms.integer = self.dut_config.sipms
+        self._dut.sipms[0].value = self.dut_config.sipm0
+        self._dut.sipms[1].value = self.dut_config.sipm0
         self._dut.clkMHz.value = self.dut_config.clk_MHz
         self._uart_agent.attach(
             in_sig=self._dut.in_sig,

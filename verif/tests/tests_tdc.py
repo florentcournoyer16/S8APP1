@@ -2,14 +2,8 @@ from cocotb import test
 from tdc.tdc_environment import TDCEnvironment
 from base_environment import DutConfig
 from base_uart_agent import UartConfig
-from cocotb import start, triggers 
-from cocotb.clock import Clock
-import os
-
-import pydevd_pycharm
 
 
-# Decorator to tell cocotb this function is a coroutine
 @test()
 async def tests_tdc(dut):
     dut_config = DutConfig()

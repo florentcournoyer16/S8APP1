@@ -1,6 +1,8 @@
 import cocotb
+
+from typing import Union, Optional
 from bitarray.util import int2ba, ba2int
-from cocotb.triggers import Event
+from cocotb.triggers import Event, Timer, First
 from cocotb.utils import get_sim_time
 from cocotb.log import SimLog
 
@@ -41,26 +43,40 @@ class BaseModel():
         return 0
 
     async def tdc(self, i_trig_rising: Event, i_trig_falling: Event) -> tuple[int, int]:
-        pulse_width = 0
-        timestamp = 0
-        while pulse_width < 20*10**3:
-            initial_timestamp = get_sim_time(units='ps')
+        while True:
             await i_trig_rising.wait()
             rising_timestamp = get_sim_time(units='ps')
             await i_trig_falling.wait()
             falling_timestamp = get_sim_time(units='ps')
+
+            pulse_width = falling_timestamp - rising_timestamp
+            if pulse_width < 20*10**3:
+                self._log.info("20ns or less glitch detected")
+                continue
+
+            while True:
+                timeout_or_rise: Optional[Union[Timer, Event]] = await First(Timer(20, units='ns'), i_trig_rising.wait())
+
+                # If we waited for 20ns
+                if isinstance(timeout_or_rise, Timer):
+
+                    timestamp = rising_timestamp % (171 * 10 ** 9)  # Wrap timestamps @ 171ms
+
+                    # Cap pulse width to 50us
+                    if pulse_width > 50 * 10 ** 6:
+                        pulse_width = 50 * 10 ** 6
+
+                    # self._log.info("initial_timestamp = %s", initial_timestamp)
+                    # self._log.info("rising_timestamp = %s", rising_timestamp)
+                    # self._log.info("falling_timestamp = %s", falling_timestamp)
+
+                    # self._log.info("pulse_width = %s", pulse_width)
+                    # self._log.info("timestamp = %s", timestamp)
+
+                    return (int(pulse_width / 40), int(timestamp / 40))
+
+                self._log.info("20ns or less glitch detected")
             
-            self._log.info("initial_timestamp = %s", initial_timestamp)
-            self._log.info("rising_timestamp = %s", rising_timestamp)
-            self._log.info("falling_timestamp = %s", falling_timestamp)
+
             
-            pulse_width = (falling_timestamp - rising_timestamp)
-            timestamp = initial_timestamp % 171*10**6 # 171ms max
-    
-            self._log.info("pulse_width = %s", pulse_width)
-            self._log.info("timestamp = %s", timestamp)
-            
-            if pulse_width > 50*10**6:
-                pulse_width = 50*10**6
-        
-        return (pulse_width, timestamp)
+

@@ -2,12 +2,8 @@ from cocotb import test
 from reg_bank.reg_bank_environment import RegBankEnvironment
 from base_environment import DutConfig
 from base_uart_agent import UartConfig
-import os
-
-import pydevd_pycharm
 
 
-# Decorator to tell cocotb this function is a coroutine
 @test()
 async def tests_reg_bank(dut):
     dut_config = DutConfig()

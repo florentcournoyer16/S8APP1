@@ -6,7 +6,7 @@
 from typing import Dict, List
 from cocotb.handle import SimHandleBase
 from cocotb.triggers import ClockCycles
-from crc8.crc8_output_monitor import CRC8OutputMonitor
+from tests.crc8.crc8_monitor import CRC8OutputMonitor, CRC8InputMonitor
 from base_mmc import BaseMMC
 from base_monitor import BaseMonitor
 from base_model import BaseModel
@@ -23,7 +23,7 @@ class CRC8MMC(BaseMMC):
         super(CRC8MMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
 
     def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
-        input_mon: BaseMonitor = BaseMonitor(
+        input_mon: BaseMonitor = CRC8InputMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.i_valid,
             datas=dict(i_data=self._logicblock.i_data, i_last=self._logicblock.i_last)
@@ -56,10 +56,9 @@ class CRC8MMC(BaseMMC):
 
             o_match_logicblock = await self._output_mon.values.get()
 
-            self._log.info(f"o_match_logicblock = {o_match_logicblock}")
+            self._log.info("o_match_logicblock = %s", o_match_logicblock)
 
             assert (o_match_model == o_match_logicblock['o_match'])
-
 
 
             #while not self._input_mon.values.empty():

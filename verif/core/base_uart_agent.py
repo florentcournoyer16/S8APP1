@@ -129,11 +129,19 @@ class BaseUartAgent:
         pkts: list[UartRxPckt] = []
         try_counter = 1
         while (len(pkts) < num_of_events) and (try_counter <  retries):
-            if(self._tdc_queue.qsize() > 0):
+            tdc_queue_size = self._tdc_queue.qsize()
+            if tdc_queue_size > 0:
                 pkts.append(await self._tdc_queue.get())
-                continue
-            await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
-            try_counter += 1
+            else:
+                await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
+                try_counter += 1
+            
+        if try_counter == retries:
+            self._log.error(
+                "Timeout after a wait of %d clock cycles",
+                int(timeout_cycles * retries)
+            )
+            return None
 
         self._log.info("After a wait of %s clock cycles, received message(s):", str(timeout_cycles * try_counter))
         for pkt in pkts:
@@ -144,7 +152,7 @@ class BaseUartAgent:
     async def _listen_uart_rx(self) -> None:
         nb_bytes_expected = int(self.uart_config.packet_size / self._uart_config.frame_size)
         while(True):
-            while self._uart_sink.count() < nb_bytes_expected + 1:
+            while self._uart_sink.count() < nb_bytes_expected:
                 await ClockCycles(self._dut_clk, num_cycles=1, rising=True)
             pkt_bytes = bytes(await self._uart_sink.read(count=nb_bytes_expected))
             await self._uart_sink.read(count=1) # crc8 byte

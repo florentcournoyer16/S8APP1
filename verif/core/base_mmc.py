@@ -47,7 +47,7 @@ class BaseMMC:
         self._checkercoro = None
 
     def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
-        raise NotImplementedError("override this method in daughter class")
+        raise NotImplementedError("Override this method in daughter class")
 
     async def _checker(self) -> None:
-        raise NotImplementedError("override this method in daughter class")
+        raise NotImplementedError("Override this method in daughter class")
