@@ -49,7 +49,7 @@ module packet_merger #(
                 .o_valid(s_new_uart_valid)
                 );
 
-    CRC8816 #(.DATA_LENGTH(MESSAGE_LENGTH)) inst_crc_calc (
+    CRC8816 inst_crc_calc (
         .clk(clk),
         .reset(crc_clear_r),
         .i_data(s_uart_data),
