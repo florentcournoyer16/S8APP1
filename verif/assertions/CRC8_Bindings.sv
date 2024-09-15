@@ -91,8 +91,8 @@ property prop_crc8_reset_val_;
     $rose(cov_reset) ##1 seq_crc8_reset_val;
 endproperty
 
-ass_crc8_reset_val: assert property(prop_crc8_reset_val) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_3_name); 
-cov_crc8_reset_val: cover property(prop_crc8_reset_val_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_3_name);
+ass_crc8_reset_val: assert property(prop_crc8_reset_val) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_3_name, crc8_1_3_description); 
+cov_crc8_reset_val: cover property(prop_crc8_reset_val_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_3_name, crc8_1_3_description);
 
 // ------------------------------------------------------
 string crc8_2_1_name = "CRC8.2.1"; string crc8_2_1_description = "cov_valid is asserted at least once";
@@ -180,7 +180,7 @@ string crc8_8_6_1_name = "CRC8.8.6.1"; string crc8_8_6_1_description = "o_match 
 string crc8_7_1_name = "CRC8.7.1"; string crc8_7_1_description = "cov_crc8 has a diverse bit coverage";
 // ------------------------------------------------------
 
-covergroup covg_out_sig @(posedge cov_clk iff(!cov_reset));
+covergroup covg_out_sig @(negedge cov_clk iff(!cov_reset));
     cop_match: coverpoint cov_match {
         bins cov_match_0 = {0};
         bins cov_match_1 = {1};

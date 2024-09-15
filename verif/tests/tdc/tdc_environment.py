@@ -1,3 +1,4 @@
+from typing import List
 from cocotb.handle import HierarchyObject
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import RegAddr, UartConfig, UartTxCmd, UartRxPckt, UartRxType
@@ -44,7 +45,7 @@ class TDCEnvironment(BaseEnvironment):
             await ClockCycles(self._dut.clk, num_cycles=1, rising=True)
 
             pulse0 = PulseConfig(rise_time=50, fall_time=100, channel=TDCChannel.CHAN0)
+            
             await self.trigger_agent.send_pulses([pulse0])
-
-            pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
+            pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
             
