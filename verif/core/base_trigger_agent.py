@@ -39,9 +39,6 @@ class BaseTriggerAgent():
                     if pulse.fall_time == min_fall:
                         self._trig[pulse.channel.value].value = 0
                     if pulse.rise_time == min_rise:
-                        self._trig[pulse.channel.value].value = 0
+                        self._trig[pulse.channel.value].value = 1
                 fall_time_list.remove(min_fall)
                 rise_time_list.remove(min_rise)
-
-
-
