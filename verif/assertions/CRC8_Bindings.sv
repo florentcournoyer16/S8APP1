@@ -57,8 +57,8 @@ endproperty
 string test_name_pass = "test_name\t PASS";
 
 
-ass_match_reset: assert property(prop_match_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_1_name); 
-cov_match_reset: cover property(prop_match_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_1_name);
+ass_match_reset: assert property(prop_match_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_1_name, crc8_1_1_description); 
+cov_match_reset: cover property(prop_match_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_1_name, crc8_1_1_description);
 
 // ------------------------------------------------------
 string crc8_1_2_name = "CRC8.1.2"; string crc8_1_2_description = "cov_done is deasserted 1 clock cycles after a reset";
@@ -72,8 +72,8 @@ property prop_done_after_reset_;
     $rose(cov_reset) ##1 !cov_done;
 endproperty
 
-ass_done_after_reset: assert property(prop_done_after_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_2_name); 
-cov_done_after_reset: cover property(prop_done_after_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_2_name);
+ass_done_after_reset: assert property(prop_done_after_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_1_2_name, crc8_1_2_description); 
+cov_done_after_reset: cover property(prop_done_after_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_1_2_name, crc8_1_2_description);
 
 // ------------------------------------------------------
 string crc8_1_3_name = "CRC8.1.3"; string crc8_1_3_description = "cov_crc8 is eq. to 0x0D 1 clock cycles after a reset";
@@ -161,7 +161,7 @@ ass_last_then_done: assert property(prop_last_then_done) else $display($stime,,,
 cov_last_then_done: cover property(prop_last_then_done_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_5_1_name, crc8_5_1_description);
 
 // ------------------------------------------------------
-string crc8_5_2_name = "CRC8.5.2"; string crc8_5_2_description = "cov_done is only deasserted 1 clock cycle after a reset"
+string crc8_5_2_name = "CRC8.5.2"; string crc8_5_2_description = "cov_done is only deasserted 1 clock cycle after a reset";
 // ------------------------------------------------------
 
 property prop_done_without_reset;
@@ -209,7 +209,7 @@ always @(posedge cov_clk) begin
 end
 
 // ------------------------------------------------------
-string crc8_6_2_name = "CRC8.6.2"; string crc8_6_2_description = "if cov_match is asserted, cov_done is asserted";
+string crc8_6_2_name = "CRC8.6.2"; string crc8_6_2_description = "cov_done is asserted when cov_match is asserted";
 // ------------------------------------------------------
 
 property prop_match_and_done;

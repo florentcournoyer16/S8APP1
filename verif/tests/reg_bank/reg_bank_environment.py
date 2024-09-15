@@ -21,6 +21,7 @@ class RegBankEnvironment(BaseEnvironment):
     async def _test(self) -> None:
         await self._test_read_prod_id()
         await self._test_rwr_thresh()
+        await self._test_rwr_cnt_rate()
 
     async def _test_read_prod_id(self) -> None:
         response: UartRxPckt = await self._uart_agent.transaction(
@@ -35,3 +36,14 @@ class RegBankEnvironment(BaseEnvironment):
         await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBEE)
         response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         assert response.data == hex(0xBEE)
+
+    async def _test_rwr_cnt_rate(self) -> None:
+        current_val = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_COUNT_RATE)
+        assert current_val.data in [hex(0x0), hex(0x1)]
+        if current_val.data == hex(0x0):
+            future_val = 1
+        elif current_val.data == hex(0x1):
+            future_val = 0
+        await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.EN_COUNT_RATE, data=future_val)
+        final_response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_COUNT_RATE)
+        assert final_response.data == hex(future_val)

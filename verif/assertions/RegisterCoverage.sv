@@ -67,7 +67,7 @@ cov_write_ack_twice : cover property(p_write_ack_twice);
 // covg_RegisterAccess cov_userifCover = new();
 
 // ------------------------------------------------------
-string rb_1_1_name = "RB.1.1"; string rb_1_1_description = "cov_writeAck is deasserted 1 cycle after a rising edge on cov_reset"
+string rb_1_1_name = "RB.1.1"; string rb_1_1_description = "cov_writeAck is deasserted 1 cycle after a rising edge on cov_reset";
 // ------------------------------------------------------
 
 property prop_writeAck_after_reset;
@@ -82,7 +82,7 @@ ass_writeAck_after_reset: assert property(prop_writeAck_after_reset) else $displ
 cov_writeAck_after_reset: cover property(prop_writeAck_after_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", rb_1_1_name, rb_1_1_description);
 
 // ------------------------------------------------------
-string rb_2_1_name = "RB.2.1"; string rb_1_2_description = "cov_writeEnable is asserted during a rising edge of cov_writeAck"
+string rb_2_1_name = "RB.2.1"; string rb_1_2_description = "cov_writeEnable is asserted during a rising edge of cov_writeAck";
 // ------------------------------------------------------
 
 property prop_writeEnable_when_writeAck;
@@ -98,15 +98,15 @@ cov_writeEnable_when_writeAck: cover property(prop_writeEnable_when_writeAck_) $
 
 
 // ------------------------------------------------------
-string rb_2_2_name = "RB.2.2"; string rb_2_2_description = "cov_writeAck is always stable for 2 cycles when asserted"
+string rb_2_2_name = "RB.2.2"; string rb_2_2_description = "cov_writeAck is always stable for 2 cycles when asserted";
 // ------------------------------------------------------
 
 property prop_writeAck_2_cycles;
-	@(posedge cov_clk) disable iff(cov_reset) $rose(cov_writeAck) |-> ##1 cov_writeAck ##1 cov_writeAck ##1 !cov_writeAck;
+	@(posedge cov_clk) disable iff(cov_reset) $rose(cov_writeAck) |-> ##1 cov_writeAck ##1 !cov_writeAck;
 endproperty
 
 property prop_writeAck_2_cycles_;
-	@(posedge cov_clk) disable iff(cov_reset) $rose(cov_writeAck) ##1 cov_writeAck ##1 cov_writeAck ##1 !cov_writeAck;
+	@(posedge cov_clk) disable iff(cov_reset) $rose(cov_writeAck) ##1 cov_writeAck ##1 !cov_writeAck;
 endproperty
 
 ass_writeAck_2_cycles: assert property(prop_writeAck_2_cycles) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", rb_2_2_name, rb_2_2_description); 
@@ -114,7 +114,7 @@ cov_writeAck_2_cycles: cover property(prop_writeAck_2_cycles_) $display($stime,,
 
 
 // ------------------------------------------------------
-string rb_2_3_name = "RB.2.3"; string rb_2_3_description = "cov_writeAck is asserted on the follow cycle of a rising edge on cov_writeEnable"
+string rb_2_3_name = "RB.2.3"; string rb_2_3_description = "cov_writeAck is asserted on the follow cycle of a rising edge on cov_writeEnable";
 // ------------------------------------------------------
 
 property writeAck_after_writeEn;
@@ -129,12 +129,12 @@ ass_writeAck_after_writeEn: assert property(writeAck_after_writeEn) else $displa
 cov_writeAck_after_writeEn: cover property(writeAck_after_writeEn_) $display($stime,,, "\t %-10s \t %-80s \t PASS", rb_2_3_name, rb_2_3_description);
 
 // ------------------------------------------------------
-string rb_3_1_name = "RB.3.1"; string rb_3_1_description = "cov_address values are written to"
-string rb_3_2_name = "RB.3.2"; string rb_3_2_description = "cov_address values are read"
-string rb_4_1_name = "RB.4.1"; string rb_4_1_description = "cov_readData values are covered"
-string rb_5_1_name = "RB.5.1"; string rb_5_1_description = "cov_writeData values are covered"
-string rb_7_1_name = "RB.7.1"; string rb_7_1_description = "readEnable is asserted"
-string rb_8_1_name = "RB.8.1"; string rb_8_1_description = "writeEnable is asserted"
+string rb_3_1_name = "RB.3.1"; string rb_3_1_description = "cov_address values are written to";
+string rb_3_2_name = "RB.3.2"; string rb_3_2_description = "cov_address values are read";
+string rb_4_1_name = "RB.4.1"; string rb_4_1_description = "cov_readData values are covered";
+string rb_5_1_name = "RB.5.1"; string rb_5_1_description = "cov_writeData values are covered";
+string rb_7_1_name = "RB.7.1"; string rb_7_1_description = "cov_readEnable is asserted";
+string rb_8_1_name = "RB.8.1"; string rb_8_1_description = "cov_writeEnable is asserted";
 // ------------------------------------------------------
 
 covergroup covg_register_access
@@ -147,16 +147,16 @@ covergroup covg_register_access
 		bins write_bins = {1};
 	}
     cop_address: coverpoint cov_address {
-		bins w_addr_bins = {7};
-		bins r_addr_bins = {6, 9};
-		bins wr_addr_bins = {1, 2, 3, 4, 5, 8};
+		bins w_addr_bins[] = {7};
+		bins r_addr_bins[] = {6, 9};
+		bins wr_addr_bins[] = {1, 2, 3, 4, 5, 8};
 	}
 	cop_readData: coverpoint cov_readData;
 	cop_writeData: coverpoint cov_writeData;
 	cro_read_addr: cross cop_readEnable, cop_address;
 	cro_write_addr: cross cop_writeEnable, cop_address;
-	cro_readData: cross cop_readEnable, cop_readData
-	cro_writeData: cross cop_writeEnable, cop_writeData
+	cro_readData: cross cop_readEnable, cop_readData;
+	cro_writeData: cross cop_writeEnable, cop_writeData;
 endgroup
 
 covg_register_access covg_register_access_inst = new();
@@ -175,20 +175,20 @@ always @(posedge cov_clk) begin
     address_cov <= covg_register_access_inst.cop_address.get_coverage();
     read_addr_cov <= covg_register_access_inst.cro_read_addr.get_coverage();
     write_addr_cov <= covg_register_access_inst.cro_write_addr.get_coverage();
-	readData_cov <= covg_readData_inst.cro_readData.get_coverage();
-	writeData_cov <= covg_writeData_inst.cro_writeData.get_coverage();
+	readData_cov <= covg_register_access_inst.cro_readData.get_coverage();
+	writeData_cov <= covg_register_access_inst.cro_writeData.get_coverage();
 end
 
 // ------------------------------------------------------
-string rb_4_3_name = "RB.4.3"; string rb_4_3_description = "cov_readData is stable if cov_readEnable and reset are deasserted"
+string rb_4_3_name = "RB.4.3"; string rb_4_3_description = "cov_readData is stable if cov_readEnable and reset are deasserted";
 // ------------------------------------------------------
 
 property prop_readData_stable;
-	@(posedge cov_clk) !cov_readEnable && !reset |-> ##1 $stable(cov_readData);
+	@(posedge cov_clk) (!cov_readEnable && !cov_reset) |-> ##1 $stable(cov_readData);
 endproperty
 
 property prop_readData_stable_;
-	@(posedge cov_clk) !cov_readEnable && !reset ##1 $stable(cov_readData);
+	@(posedge cov_clk) (!cov_readEnable && !cov_reset) ##1 $stable(cov_readData);
 endproperty
 
 ass_readData_stable: assert property(prop_readData_stable) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", rb_4_3_name, rb_4_3_description); 
@@ -200,10 +200,10 @@ final begin
     $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_3_2_name, rb_3_2_description, read_addr_cov);
 
     $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_4_1_name, rb_4_1_description, readData_cov);
-    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_5_1_name, rb_5_1_description, write_addr_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_5_1_name, rb_5_1_description, writeData_cov);
 
-    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_7_1_name, rb_7_1_description, readData_cov);
-    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_8_1_name, rb_8_1_description, writeData_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_7_1_name, rb_7_1_description, readEnable_cov);
+    $display($stime,,, "\t %-10s \t %-80s \t %0.2f%%", rb_8_1_name, rb_8_1_description, writeEnable_cov);
 end
 
 
