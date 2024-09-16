@@ -5,10 +5,10 @@ from base_uart_agent import UartConfig
 
 
 @test()
-async def tests_tdc(dut):
+async def tests_tdc_SA2(dut):
     dut_config = DutConfig()
     uart_config = UartConfig()
     tests = []
     tests.append(TDCEnvironment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run()
+        await test.run(name='SA2')

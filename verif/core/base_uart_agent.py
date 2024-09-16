@@ -137,10 +137,7 @@ class BaseUartAgent:
                 await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
                 try_counter += 1
         
-        for pkt in pkts:
-            pkt.log_pkt()
-        
-        self._log.info("Nb of received pulse from TDC: %s ", str(len(pkts)))
+        #self._log.info("Nb of received event from TDC: %s ", str(len(pkts)))
 
         if try_counter == retries:
             self._log.error(
@@ -149,7 +146,7 @@ class BaseUartAgent:
             )
             return pkts
 
-        self._log.info("After a wait of %s clock cycles, received message(s):", str(timeout_cycles * try_counter))
+        #self._log.info("After a wait of %s clock cycles, received message(s):", str(timeout_cycles * try_counter))
         #for pkt in pkts:
         #    pkt.log_pkt()
 
@@ -168,6 +165,7 @@ class BaseUartAgent:
             )
 
             if pkt.type == UartRxType.EVENT:
+                pkt.log_pkt()
                 await self._tdc_queue.put(pkt)
             else:
                 await self._reg_queue.put(pkt)
@@ -184,3 +182,10 @@ class BaseUartAgent:
             raise RuntimeError("Monitor never started")
         self._uart_rx_listenner.kill()
         self._uart_rx_listenner = None
+
+    async def reset(self):
+        while(not self._tdc_queue.empty()):
+            await self._tdc_queue.get()
+        while(not self._reg_queue.empty()):
+            await self._reg_queue.get()
+        return

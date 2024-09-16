@@ -209,7 +209,7 @@ property prop_stable_TS;
 endproperty
 
 property prop_stable_TS_;
-	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $changed(cov_TS);
+	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $stable(cov_TS);
 endproperty
 
 ass_stable_TS: assert property(prop_stable_TS) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", tdc_3_2_name, tdc_3_2_description); 
@@ -224,7 +224,7 @@ property prop_stable_TOT;
 endproperty
 
 property prop_stable_TOT_;
-	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $changed(cov_TOT);
+	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $stable(cov_TOT);
 endproperty
 
 ass_stable_TOT: assert property(prop_stable_TOT) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", tdc_4_3_name, tdc_4_3_description); 

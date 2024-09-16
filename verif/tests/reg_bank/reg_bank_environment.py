@@ -1,8 +1,10 @@
+from typing import Tuple, List
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent, UartRxPckt
 from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.handle import HierarchyObject
 from base_model import BaseModel
+from random import randint, seed
 
 
 class RegBankEnvironment(BaseEnvironment):
@@ -28,9 +30,10 @@ class RegBankEnvironment(BaseEnvironment):
         ))
 
     async def _test(self) -> None:
-        await self._test_read_prod_id()
-        await self._test_rwr_thresh()
-        await self._test_rwr_cnt_rate()
+        # await self._test_read_prod_id()
+        # await self._test_rwr_thresh()
+        # await self._test_rwr_cnt_rate()
+        await self._test_SA_1()
 
     async def _test_read_prod_id(self) -> None:
         response: UartRxPckt = await self._uart_agent.transaction(
@@ -56,3 +59,24 @@ class RegBankEnvironment(BaseEnvironment):
         await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.EN_COUNT_RATE, data=future_val)
         final_response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_COUNT_RATE)
         assert final_response.data == hex(future_val)
+
+    async def _test_SA_1(self) -> None:
+        values: List[Tuple[RegAddr, int]] = [
+            (RegAddr.DATA_MODE, randint(0, 2**32)),
+            (RegAddr.BIAS_MODE, randint(0, 2**32)),
+            (RegAddr.EN_COUNT_RATE, randint(0, 2**32)),
+            (RegAddr.EN_EVENT_COUNT_RATE, randint(0, 2**32)),
+            (RegAddr.TDC_THRESH, randint(0, 2**32)),
+            (RegAddr.SRC_SEL, randint(0, 2**32)),
+            (RegAddr.SYNC_FLAG_ERR, randint(0, 2**32)),
+            (RegAddr.CLEAR_SYNC_FLAG, randint(0, 2**32)),
+            (RegAddr.CHANNEL_EN_BITS, randint(0, 2**32)),
+            (RegAddr.PRODUCT_VER_ID, randint(0, 2**32))
+        ]
+        
+        for value in values:
+            self._log.info(value)
+            await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+            await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
+            await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+        

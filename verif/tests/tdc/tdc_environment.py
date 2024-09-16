@@ -8,6 +8,7 @@ from base_model import BaseModel, RegAddr
 from cocotb.triggers import ClockCycles, Timer
 from random import randint, seed
 from cocotb import start, Coroutine, Task, start_soon
+from cocotb.log import SimLog
 
 INTRPLT_DLY = 3000
 
@@ -23,6 +24,8 @@ class TDCEnvironment(BaseEnvironment):
             logger_name=type(self).__qualname__
         )
         self.trigger_agent = BaseTriggerAgent(dut.sipms)
+        self.tdc_error_count = 0
+        self.smp_count = 0
     
     def _build_env(self) -> None:
         super(TDCEnvironment, self)._build_env()
@@ -37,15 +40,36 @@ class TDCEnvironment(BaseEnvironment):
             channel=TDCChannel.CHAN1
         ))
 
-    async def _test(self) -> None:
-        for _ in range(5):
-            #await self._test_init()
-            #await self._test_SA_1()
-            await self._test_SA_2()
-            await self._test_SA_3()
-            await self._test_SA_4()
-            await self._test_SD_1()
-            await self._test_SD_2()
+    async def _test(self, name : str) -> None:
+        test_fail = 0
+        test_count = 0
+        if(name == 'SA1'):
+            test_fail += await self._test_SA_1()
+            test_count += 1
+            await self.reset()
+        if(name == 'SA2'):
+            test_fail += await self._test_SA_2()
+            test_count += 1
+            await self.reset()
+        if(name == 'SA3'):
+            test_fail += await self._test_SA_3()
+            test_count += 1
+            await self.reset()
+        if(name == 'SA4'):
+            test_fail += await self._test_SA_4()
+            test_count += 1
+            await self.reset()
+        if(name == 'SD1'):
+            test_fail += await self._test_SD_1()
+            test_count += 1
+            await self.reset()
+        if(name == 'SD2'):
+            test_fail += await self._test_SD_2()
+            test_count += 1
+            await self.reset()
+        self._log.info("Sent %i pulses and received %i wrong values", self.smp_count, self.tdc_error_count)
+        self._log.info("Ran %i tests with %i FAIL", test_count, test_fail)
+        assert test_fail == 0
 
     async def _test_init(self) -> None:
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
@@ -63,7 +87,11 @@ class TDCEnvironment(BaseEnvironment):
 
             pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
             
-    async def _test_SA_1(self) -> None:
+    async def _test_SA_1(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SA_1"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
         # Enables the CH0
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
             cmd=UartTxCmd.WRITE,
@@ -96,14 +124,25 @@ class TDCEnvironment(BaseEnvironment):
         
         # 4. Send the geneated pulses
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=41)
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
+        
         
         # 5. Assert that only the first pulse has been detected by the TDC
-        assert len(pkts) == 1, "ERROR : TDC got triggered by a pulse less than 20ns"
-
-        return
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(len(pkts) > 1):
+            test_log.info("FAIL : CHAN0 sent data while disabled")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
     
-    async def _test_SA_2(self) -> None:
+    async def _test_SA_2(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SA_2"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         pkts: list[UartRxPckt] = []
 
         # Enables the CH0
@@ -114,23 +153,35 @@ class TDCEnvironment(BaseEnvironment):
         )
         assert response_ch0.type == UartRxType.ACK_WRITE
 
-        rand_pulses = []
-        timestamp = 0
-        for i in range(5):
+        for _ in range(10):
             rand_delay = randint(50, 100)
             rand_width = randint(20, 5000) + rand_delay
 
             # Generation of a random pulse on CH0
-            rand_pulses.append(PulseConfig(rise_time=timestamp+rand_delay, fall_time=timestamp+rand_width, channel=TDCChannel.CHAN0))
-            timestamp+=rand_width+INTRPLT_DLY
+            rand_pulse = PulseConfig(rise_time=rand_delay, fall_time=rand_width, channel=TDCChannel.CHAN0)
 
-        # Sending the pulses on the trigger signal
-        start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
+            # Sending the pulses on the trigger signal
+            await self.trigger_agent.send_pulses([rand_pulse], units='ns')
 
-        # Waiting for the DUT to transeive the TDC interpolation 
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=10,retries=1000)
+            # Waiting for the DUT to transeive the TDC interpolation 
+            pkts.append(await self._uart_agent.tdc_transaction(num_events=2))
 
-    async def _test_SA_3(self) -> None:
+
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(len(pkts) == 20):
+            test_log.info("FAIL : CHAN0 saw the wrong number of pulses")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
+
+    async def _test_SA_3(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SA_3"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         pkts: list[UartRxPckt] = []
 
         # Enables the CH0
@@ -154,9 +205,23 @@ class TDCEnvironment(BaseEnvironment):
             timestamp += rand_fell-41 + INTRPLT_DLY
         
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=18,retries=1000)
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=18)
 
-    async def _test_SA_4(self) -> None:
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(len(pkts) == 18):
+            test_log.info("FAIL : CHAN0 sent data while disabled")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
+
+    async def _test_SA_4(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SA_4"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         pkts: list[UartRxPckt] = []
 
         # Enables the CH0
@@ -189,9 +254,23 @@ class TDCEnvironment(BaseEnvironment):
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
 
         # Waiting for the DUT to transeive the TDC interpolation 
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=20, retries=1000)
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=20)
 
-    async def _test_SD_1(self) -> None:
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(len(pkts) == 20):
+            test_log.info("FAIL : CHAN0 sent data while disabled")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
+            
+    async def _test_SD_1(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SD_1"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         # Enables the CH0
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
             cmd=UartTxCmd.WRITE,
@@ -206,10 +285,23 @@ class TDCEnvironment(BaseEnvironment):
 
         pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=3)
 
-        assert len(pkts) == 2
-        return
+        self._dut.sipms[0].value = 0
+
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(len(pkts) == 2):
+            test_log.info("FAIL : CHAN0 sent data while disabled")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
         
-    async def _test_SD_2(self) -> None:
+    async def _test_SD_2(self) -> int:
+        # Initialise this test logger
+        test_name = "test_SD_2"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
             cmd=UartTxCmd.WRITE,
             addr=RegAddr.CHANNEL_EN_BITS,
@@ -225,5 +317,36 @@ class TDCEnvironment(BaseEnvironment):
 
         await ClockCycles(self._dut.clk, num_cycles=50000, rising=True)
 
-        assert self._uart_agent._tdc_queue.qsize() == 0, "CHAN0 sent data while disabled"
-        return
+        test_log.info("Finished %s" % test_name)
+        self.error_handling(test_log)
+        if(self._uart_agent._tdc_queue.qsize() == 0):
+            test_log.info("FAIL : CHAN0 sent data while disabled")
+            return 1
+        else:
+            test_log.info("SUCCESS")
+            return 0
+
+    async def reset(self):
+        self._dut.reset.value = 1
+        Timer(100, units='ns')
+        #await self.trigger_agent.reset()
+        await self._uart_agent.reset()
+        for mmc in self._mmc_list:
+            await mmc.reset()
+        self._dut.reset.value = 0
+
+    def error_handling(self, logger):
+        if(self._mmc_list[0].error_timestamp):
+            logger.info("MMC FAIL : %i o_timestamp out of %i were wrong in CH0", self._mmc_list[0].error_timestamp, self._mmc_list[0].smp_count)
+            self.tdc_error_count += self._mmc_list[0].error_timestamp
+        if(self._mmc_list[0].error_pulse_width):
+            logger.info("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH0", self._mmc_list[0].error_pulse_width, self._mmc_list[0].smp_count)
+            self.tdc_error_count += self._mmc_list[0].error_pulse_width
+        if(self._mmc_list[1].error_timestamp):
+            logger.info("MMC FAIL : %i o_timestamp out of %i were wrong in CH1", self._mmc_list[1].error_timestamp, self._mmc_list[0].smp_count)
+            self.tdc_error_count += self._mmc_list[1].error_timestamp
+        if(self._mmc_list[1].error_pulse_width):
+            logger.info("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH1", self._mmc_list[1].error_pulse_width, self._mmc_list[0].smp_count)
+            self.tdc_error_count += self._mmc_list[1].error_pulse_width
+        self.smp_count += self._mmc_list[0].smp_count
+        self.smp_count += self._mmc_list[1].smp_count

@@ -145,5 +145,7 @@ class BaseModel():
         if address in [RegAddr.CHANNEL_EN_BITS]:
             self._register_bank[hex(address.value)] = write_data & 0x0000FFFF
             write_ack = 1
+        if address in [RegAddr.SYNC_FLAG_ERR]:
+            write_ack = 1
         return (write_ack, read_data)
             

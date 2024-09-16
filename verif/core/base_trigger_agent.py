@@ -45,3 +45,6 @@ class BaseTriggerAgent():
                         self._trig[pulse.channel.value].value = 1
                 fall_time_list.remove(min_fall)
                 rise_time_list.remove(min_rise)
+    
+    def reset(self):
+        return
