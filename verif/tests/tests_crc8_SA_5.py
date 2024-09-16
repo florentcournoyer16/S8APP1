@@ -5,10 +5,10 @@ from base_uart_agent import UartConfig
 
 
 @test()
-async def tests_crc8_SA5(dut):
+async def tests_crc8_SA_5(dut):
     dut_config = DutConfig()
     uart_config = UartConfig()
     tests = []
     tests.append(CRC8Environment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run(names=['SA5'])
+        await test.run(names=['SA_5'])
