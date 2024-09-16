@@ -1,11 +1,9 @@
-import cocotb
-
+from enum import Enum
 from typing import Union, Optional, Tuple
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import Event, Timer, First
 from cocotb.utils import get_sim_time
 from cocotb.log import SimLog
-from uart_packets import RegAddr
 
 CRC8_START = 0x0D
 CRC_POLY = 0xC6
@@ -116,27 +114,27 @@ class BaseModel():
                 i_trig_falling=i_trig_falling
             )
     
-    def register_bank(self, i_read_enable: int, i_write_enable: int, i_address: int, i_write_data: int = 0) -> Tuple[int, int]:
-        i_address = RegAddr(i_address)
-        if i_read_enable == '1' and i_write_enable == '0':
-            return self._handle_read(i_address=i_address)
-        elif i_write_enable == '1' and i_read_enable == '0':
-            return self._handle_write(i_address=i_address, i_write_data=i_write_data)
+    def register_bank(self, read_enable: int, write_enable: int, address: int, write_data: int = 0) -> Tuple[int, int]:
+        address = RegAddr(address)
+        if read_enable == 1 and write_enable == 0:
+            return self._handle_read(address=address)
+        elif write_enable == 1 and read_enable == 0:
+            return self._handle_write(address=address, write_data=write_data)
         else:
             raise ValueError('read_enable and write_enable cannot be equal')
             
-    def _handle_read(self, i_address: RegAddr) -> Tuple[int, int]:
+    def _handle_read(self, address: RegAddr) -> Tuple[int, int]:
         write_ack = 0
         read_data = 0
-        if i_address != RegAddr.CLEAR_SYNC_FLAG:
-            read_data = self._register_bank[str(i_address.value)]
+        if address != RegAddr.CLEAR_SYNC_FLAG:
+            read_data = self._register_bank[hex(address.value)]
         return (write_ack, read_data)
     
-    def _handle_write(self, i_address: RegAddr,  i_write_data: int):
+    def _handle_write(self, address: RegAddr,  write_data: int):
         write_ack = 0
         read_data = 0
-        if i_address not in [RegAddr.SRC_SEL, RegAddr.PRODUCT_VER_ID]:
-            self._register_bank[str(i_address.value)] = i_write_data
+        if address in [RegAddr.TDC_THRESH]:
+            self._register_bank[hex(address.value)] = write_data
             write_ack = 1
-            return (write_ack, read_data)
+        return (write_ack, read_data)
             

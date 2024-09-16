@@ -24,7 +24,7 @@ class RegBankEnvironment(BaseEnvironment):
         super(RegBankEnvironment, self)._build_env()
         self._mmc_list.append(RegBankMMC(
             model=BaseModel(),
-            logicblock_instance=self._dut.register_dut
+            logicblock_instance=self._dut.registers_dut
         ))
 
     async def _test(self) -> None:

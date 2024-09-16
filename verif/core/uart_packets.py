@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field, Tuple
+from dataclasses import dataclass, field
+from typing import Tuple
 from cocotb.binary import BinaryValue
 from cocotb.log import SimLog
 from enum import Enum

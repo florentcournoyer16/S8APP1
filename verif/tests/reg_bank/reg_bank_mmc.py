@@ -24,22 +24,22 @@ class RegBankMMC(BaseMMC):
     def _set_monitors(self) -> Tuple[BaseMonitor, BaseMonitor]:
         input_mon: BaseMonitor = RegBankInputMonitor(
             clk=self._logicblock.clk,
-            read_enable=self._logicblock.i_readEnable,
-            write_enable=self._logicblock.i_writeEnable,
+            read_enable=self._logicblock.readEnable,
+            write_enable=self._logicblock.writeEnable,
             datas=dict(
-                i_writeEnable=self._logicblock.i_readEnable,
-                i_readEnable=self._logicblock.i_writeEnable,
-                i_address=self._logicblock.i_address,
-                i_writeData=self._logicblock.i_writeData
+                writeEnable=self._logicblock.writeEnable,
+                readEnable=self._logicblock.readEnable,
+                address=self._logicblock.address,
+                writeData=self._logicblock.writeData
             )
         )
         output_mon: BaseMonitor = RegBankOutputMonitor(
             clk=self._logicblock.clk,
-            read_enable=self._logicblock.i_readEnable,
-            write_enable=self._logicblock.i_writeEnable,
+            read_enable=self._logicblock.readEnable,
+            write_ack=self._logicblock.writeAck,
             datas=dict(
-                o_writeAck=self._logicblock.o_writeAck,
-                o_readData=self._logicblock.o_readData)
+                writeAck=self._logicblock.writeAck,
+                readData=self._logicblock.readData)
         )
         return input_mon, output_mon
 
@@ -55,27 +55,34 @@ class RegBankMMC(BaseMMC):
             
             in_mon_samples = await self._input_mon.values.get()
             
-            i_write_enable = in_mon_samples["i_writeEnable"]
-            i_read_enable = in_mon_samples["i_readEnable"]
-            i_address = in_mon_samples["i_address"]
-            i_write_data = in_mon_samples["i_writeData"]
+            write_enable = in_mon_samples["writeEnable"]
+            read_enable = in_mon_samples["readEnable"]
+            address = in_mon_samples["address"]
+            write_data = in_mon_samples["writeData"]
             
-            o_model: Tuple[int, int] = self._model.register_bank(
-                write_enable=i_write_enable,
-                read_enable=i_read_enable,
-                address=i_address,
-                write_data=i_write_data
+            self._log.info(
+                "write_enable = %s, read_enable = %s, address = %s, write_data = %s",
+                hex(write_enable), hex(read_enable),
+                hex(address), hex(write_data)
             )
-            o_write_ack_model = o_model[0]
-            o_read_data_model = o_model[1]
+            
+            model_output: Tuple[int, int] = self._model.register_bank(
+                write_enable=write_enable,
+                read_enable=read_enable,
+                address=address,
+                write_data=write_data
+            )
+            self._log.info("model_output = %s", model_output)
+            write_ack_model = model_output[0]
+            read_data_model = model_output[1]
 
             out_mon_samples = await self._output_mon.values.get()
             
-            o_write_ack_mon = out_mon_samples["o_writeAck"]
-            o_read_data_mon = out_mon_samples["o_readData"]
+            write_ack_mon = out_mon_samples["writeAck"]
+            read_data_mon = out_mon_samples["readData"]
 
-            self._log.info("o_write_ack_mon = %s, o_read_data_mon = %s", o_write_ack_mon, o_read_data_mon)
-            self._log.info("o_write_ack_model = %s, o_read_data_model = %s", o_write_ack_model, o_read_data_model)
+            self._log.info("write_ack_mon = %s, read_data_mon = %s", hex(write_ack_mon), hex(read_data_mon))
+            self._log.info("write_ack_model = %s, read_data_model = %s", hex(write_ack_model), hex(read_data_model))
 
-            assert (o_write_ack_model == o_write_ack_mon)
-            assert (o_read_data_model == o_read_data_model)
+            assert (write_ack_model == write_ack_mon)
+            assert (read_data_model == read_data_model)
