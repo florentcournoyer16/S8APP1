@@ -36,11 +36,11 @@ default clocking DEFCLK @(posedge cov_clk);
 endclocking
 
 sequence seq_glitchless_rose_trigger;
-	($rose(cov_trigger) && !o_busy) ##1 $stable(cov_trigger, 1)
+	($rose(cov_trigger) && !o_busy) ##1 $stable(cov_trigger)
 endsequence
 
 sequence seq_glitchless_fell_trigger;
-	($fell(cov_trigger) && o_busy) ##1 $stable(cov_trigger, 1)
+	($fell(cov_trigger) && o_busy) ##1 $stable(cov_trigger)
 endsequence
 
 
@@ -178,7 +178,7 @@ string tdc_4_2_name = "TDC.4.2"; string tdc_4_2_description = "cov_TOT values ar
 // ------------------------------------------------------
 
 covergroup covg_out_sig
-    @(negedge cov_clk && (cov_readEnable || cov_writeEnable) iff(!cov_reset));
+    @(negedge cov_clk && iff(!cov_reset));
     cop_hasEvent: coverpoint cov_hasEvent {
 		bins read_bins = {1};
 	}
@@ -209,11 +209,11 @@ string tdc_3_2_name = "TDC.3.2"; string tdc_3_2_description = "cov_TS is stable 
 // ------------------------------------------------------
 
 property prop_stable_cov_TS;
-	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) |-> $stable(cov_TS, 1);
+	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) |-> $stable(cov_TS);
 endproperty
 
 property prop_stable_cov_TS_;
-	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $change(cov_TS, 1);
+	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $change(cov_TS);
 endproperty
 
 ass_stable_cov_TS: assert property(prop_stable_cov_TS) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", tdc_3_2_name, tdc_3_2_description); 
@@ -224,11 +224,11 @@ string tdc_4_3_name = "TDC.3.2"; string tdc_4_3_description = "cov_TOT is stable
 // ------------------------------------------------------
 
 property prop_stable_cov_TS;
-	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) |-> $stable(cov_TOT, 1);
+	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) |-> $stable(cov_TOT);
 endproperty
 
 property prop_stable_cov_TS_;
-	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $change(cov_TOT, 1);
+	@(posedge clk) disable iff(cov_reset || !cov_enable) cov_hasEvent ##1 !$rose(cov_clear) ##0 $change(cov_TOT);
 endproperty
 
 ass_stable_cov_TS: assert property(prop_stable_cov_TS) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", tdc_4_3_name, tdc_4_3_description); 
