@@ -32,8 +32,11 @@ class RegBankEnvironment(BaseEnvironment):
     async def _test(self, name:str) -> None:
         if (name == "SD.1"):
             await self._test_SD_1()
+        if (name == "SD.2"):
+            await self._test_SA_1()
         if (name == "SA.1"):
             await self._test_SA_1()
+
         # await self._test_read_prod_id()
         # await self._test_rwr_thresh()
         # await self._test_rwr_cnt_rate()
@@ -96,10 +99,10 @@ class RegBankEnvironment(BaseEnvironment):
             RegAddr.CHANNEL_EN_BITS,
             RegAddr.PRODUCT_VER_ID
         ]
-        
+
         for reg in reg_list:
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=reg)
-        
+
         values: List[Tuple[RegAddr, int]] = [
             (RegAddr.DATA_MODE, 11),
             (RegAddr.BIAS_MODE, 11),
@@ -112,7 +115,23 @@ class RegBankEnvironment(BaseEnvironment):
         ]
 
         for value in values:
-            await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
     
+    async def _test_SD_2(self) -> None:
+        values: List[Tuple[RegAddr, int]] = [
+            (RegAddr.DATA_MODE, 0xFFFFFFFF),
+            (RegAddr.BIAS_MODE, 0xFFFFFFFF),
+            (RegAddr.EN_COUNT_RATE, 0xFFFFFFFF),
+            (RegAddr.EN_EVENT_COUNT_RATE, 0xFFFFFFFF),
+            (RegAddr.SRC_SEL, 0xFFFFFFFF),
+            (RegAddr.CLEAR_SYNC_FLAG, 0xFFFFFFFF),
+            (RegAddr.SYNC_FLAG_ERR, 0xFFFFFFFF),
+            (RegAddr.CHANNEL_EN_BITS, 0xFFFFFFFF),
+            (RegAddr.PRODUCT_VER_ID, 0xFFFFFFFF),
+        ]
+
+        for value in values:
+            await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+            await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
+            await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
