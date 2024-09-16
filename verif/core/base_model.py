@@ -69,7 +69,7 @@ class BaseModel():
         # If we waited for 20ns
         if isinstance(timeout_or_rise, Timer):
 
-            timestamp = rising_timestamp % (171 * 10 ** 9)  # Wrap timestamps @ 171ms
+            timestamp = rising_timestamp % (40 * (2 ** 32))  # Wrap timestamps @ 171ms
 
             # Cap pulse width to 50us
             if pulse_width > 50 * 10 ** 6:

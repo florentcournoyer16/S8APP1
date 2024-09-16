@@ -8,7 +8,7 @@ from cocotb.triggers import ClockCycles, Timer
 from random import randint, seed
 from cocotb import start, Coroutine, Task, start_soon
 
-INTRPLT_DLY = 2010
+INTRPLT_DLY = 3000
 
 class TDCEnvironment(BaseEnvironment):
     def __init__(
@@ -37,12 +37,14 @@ class TDCEnvironment(BaseEnvironment):
         ))
 
     async def _test(self) -> None:
-        #await self._test_init()
-        #await self._test_SA_1()
-        await self._test_SA_2()
-        #await self._test_SA_3()
-        #await self._test_SD_1()
-        #await self._test_SD_2()
+        for _ in range(5):
+            #await self._test_init()
+            #await self._test_SA_1()
+            await self._test_SA_2()
+            await self._test_SA_3()
+            await self._test_SA_4()
+            await self._test_SD_1()
+            await self._test_SD_2()
 
     async def _test_init(self) -> None:
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
@@ -113,7 +115,7 @@ class TDCEnvironment(BaseEnvironment):
 
         rand_pulses = []
         timestamp = 0
-        for i in range(10):
+        for i in range(5):
             rand_delay = randint(50, 100)
             rand_width = randint(20, 5000) + rand_delay
 
@@ -125,7 +127,7 @@ class TDCEnvironment(BaseEnvironment):
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
 
         # Waiting for the DUT to transeive the TDC interpolation 
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=10, retries=10000)
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=10,retries=1000)
 
     async def _test_SA_3(self) -> None:
         pkts: list[UartRxPckt] = []
@@ -140,7 +142,7 @@ class TDCEnvironment(BaseEnvironment):
         
         timestamp = 0
         rand_pulses = []
-        for i in range(10):
+        for i in range(3):
             rand_rise = randint(50, 100)
             rand_fell = randint(21, 5000)+rand_rise
             rand_pulses.append(PulseConfig(rise_time=timestamp+rand_rise, fall_time=timestamp+rand_fell, channel=TDCChannel.CHAN0))
@@ -151,7 +153,42 @@ class TDCEnvironment(BaseEnvironment):
             timestamp += rand_fell-41 + INTRPLT_DLY
         
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=30, retries=5000)
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=18,retries=1000)
+
+    async def _test_SA_4(self) -> None:
+        pkts: list[UartRxPckt] = []
+
+        # Enables the CH0
+        response_ch0: UartRxPckt = await self._uart_agent.transaction(
+            cmd=UartTxCmd.WRITE,
+            addr=RegAddr.CHANNEL_EN_BITS,
+            data=0b11
+        )
+        assert response_ch0.type == UartRxType.ACK_WRITE
+
+        rand_pulses = []
+        timestamp = 0
+        for i in range(5):
+            rand_delay = randint(50, 100)
+            rand_width = randint(20, 5000) + rand_delay
+
+            # Generation of a random pulse on CH0
+            rand_pulses.append(PulseConfig(rise_time=timestamp+rand_delay, fall_time=timestamp+rand_width, channel=TDCChannel.CHAN0))
+            timestamp+=rand_width+INTRPLT_DLY
+        timestamp = 0
+        for i in range(5):
+            rand_delay = randint(50, 100)
+            rand_width = randint(20, 5000) + rand_delay
+
+            # Generation of a random pulse on CH0
+            rand_pulses.append(PulseConfig(rise_time=timestamp+rand_delay, fall_time=timestamp+rand_width, channel=TDCChannel.CHAN1))
+            timestamp+=rand_width+INTRPLT_DLY
+
+        # Sending the pulses on the trigger signal
+        start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
+
+        # Waiting for the DUT to transeive the TDC interpolation 
+        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=20, retries=1000)
 
     async def _test_SD_1(self) -> None:
         # Enables the CH0

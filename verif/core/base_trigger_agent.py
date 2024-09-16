@@ -8,7 +8,7 @@ from cocotb.log import SimLog
 class PulseConfig:
     rise_time: int
     fall_time: int
-    channel: TDCChannel = TDCChannel.CHAN0
+    channel: TDCChannel
 
 class BaseTriggerAgent():
     def __init__(self, trig: ModifiableObject):
