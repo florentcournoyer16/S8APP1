@@ -1,14 +1,14 @@
 from cocotb import test
-from tdc.tdc_environment import TDCEnvironment
+from crc8.crc8_environment import CRC8Environment
 from base_environment import DutConfig
 from base_uart_agent import UartConfig
 
 
 @test()
-async def tests_tdc_SD1(dut):
+async def tests_crc8_SA_5(dut):
     dut_config = DutConfig()
     uart_config = UartConfig()
     tests = []
-    tests.append(TDCEnvironment(dut, dut_config, uart_config))
+    tests.append(CRC8Environment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run(name='SD1')
+        await test.run(names=['SA_5'])

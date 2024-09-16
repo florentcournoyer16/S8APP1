@@ -34,7 +34,6 @@ class BaseUartAgent:
         
         self._uart_rx_listenner: Optional[Task] = None
 
-
     @property
     def uart_config(self) -> UartConfig:
         if self._uart_config is None:
@@ -163,9 +162,9 @@ class BaseUartAgent:
                 rx_pkt_bytes=pkt_bytes,
                 uart_config=self.uart_config
             )
-
             if pkt.type == UartRxType.EVENT:
                 pkt.log_pkt()
+                
                 await self._tdc_queue.put(pkt)
             else:
                 await self._reg_queue.put(pkt)
