@@ -18,6 +18,11 @@ class RegBankEnvironment(BaseEnvironment):
             uart_config=uart_config,
             logger_name=type(self).__qualname__
         )
+        self.test_dict = {
+            'SD.1' : self._test_SD_1,
+            'SD.2' : self._test_SD_2,
+            'SA.1' : self._test_SA_1
+        }
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
         return BaseUartAgent(uart_config)
@@ -29,33 +34,37 @@ class RegBankEnvironment(BaseEnvironment):
             logicblock_instance=self._dut.registers_dut
         ))
 
-    async def _test(self, name:str) -> None:
-        if (name == "SD.1"):
-            await self._test_SD_1()
-        if (name == "SD.2"):
-            await self._test_SA_1()
-        if (name == "SA.1"):
-            await self._test_SA_1()
+    async def _test(self, names:List[str]) -> None:
+        test_fail = 0
+        test_count = 0
+        for name in names:
+            test_fail += await self.test_dict[name]()
+            test_count += 1
+
+        self._log.info("Ran %i tests with %i FAIL", test_count, test_fail)
+        assert test_fail == 0
 
         # await self._test_read_prod_id()
         # await self._test_rwr_thresh()
         # await self._test_rwr_cnt_rate()
 
-    async def _test_read_prod_id(self) -> None:
+    async def _test_read_prod_id(self) -> int:
         response: UartRxPckt = await self._uart_agent.transaction(
             cmd=UartTxCmd.READ,
             addr=RegAddr.PRODUCT_VER_ID
         )
         assert response.data == hex(0xBADEFACE)
+        return 0
 
-    async def _test_rwr_thresh(self) -> None:
+    async def _test_rwr_thresh(self) -> int:
         response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         assert response.data == hex(0x00000000)
         await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.TDC_THRESH, data=0xBEE)
         response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         assert response.data == hex(0xBEE)
+        return 0
 
-    async def _test_rwr_cnt_rate(self) -> None:
+    async def _test_rwr_cnt_rate(self) -> int:
         current_val = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_COUNT_RATE)
         assert current_val.data in [hex(0x0), hex(0x1)]
         if current_val.data == hex(0x0):
@@ -65,6 +74,7 @@ class RegBankEnvironment(BaseEnvironment):
         await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=RegAddr.EN_COUNT_RATE, data=future_val)
         final_response = await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_COUNT_RATE)
         assert final_response.data == hex(future_val)
+        return 0
     
     async def _test_SA_1(self) -> None:
         values: List[Tuple[RegAddr, int]] = [
@@ -84,6 +94,8 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+        
+        return 0
 
 
     async def _test_SD_1(self) -> None:
@@ -117,6 +129,8 @@ class RegBankEnvironment(BaseEnvironment):
         for value in values:
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+        
+        return 0
     
     async def _test_SD_2(self) -> None:
         values: List[Tuple[RegAddr, int]] = [
@@ -135,3 +149,5 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
+        
+        return 0

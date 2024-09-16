@@ -11,4 +11,4 @@ async def tests_reg_bank_SD_2(dut):
     tests = []
     tests.append(RegBankEnvironment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run(name="SD.2")
+        await test.run(names=["SD.2"])

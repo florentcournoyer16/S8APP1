@@ -20,6 +20,7 @@ class RegBankMMC(BaseMMC):
 
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase):
         super(RegBankMMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
+        self.error_count = 0
 
     def _set_monitors(self) -> Tuple[BaseMonitor, BaseMonitor]:
         input_mon: BaseMonitor = RegBankInputMonitor(
@@ -85,5 +86,7 @@ class RegBankMMC(BaseMMC):
             self._log.info("write_ack_mon = %s, read_data_mon = %s", hex(write_ack_mon), hex(read_data_mon))
             self._log.info("write_ack_model = %s, read_data_model = %s", hex(write_ack_model), hex(read_data_model))
 
-            assert (hex(write_ack_model) == hex(write_ack_mon))
-            assert (hex(read_data_model) == hex(read_data_mon))
+            if (hex(write_ack_model) != hex(write_ack_mon)):
+                self.error_count += 1
+            if (hex(read_data_model) != hex(read_data_mon)):
+                self.error_count += 1

@@ -26,12 +26,12 @@ class TDCEnvironment(BaseEnvironment):
         self.trigger_agent = BaseTriggerAgent(dut.sipms)
         self.tdc_error_count = 0
         self.smp_count = 0
-        self.test_dict = {'SD_1' : self._test_SD_1,
-                          'SD_2' : self._test_SD_2,
-                          'SA_1' : self._test_SA_1,
-                          'SA_2' : self._test_SA_2,
-                          'SA_3' : self._test_SA_3,
-                          'SA_4' : self._test_SA_4}
+        self.test_dict = {'SD.1' : self._test_SD_1,
+                          'SD.2' : self._test_SD_2,
+                          'SA.1' : self._test_SA_1,
+                          'SA.2' : self._test_SA_2,
+                          'SA.3' : self._test_SA_3,
+                          'SA.4' : self._test_SA_4}
     
     def _build_env(self) -> None:
         super(TDCEnvironment, self)._build_env()
@@ -49,7 +49,7 @@ class TDCEnvironment(BaseEnvironment):
     async def _test(self, names : list[str]) -> None:
         test_fail = 0
         test_count = 0
-        for name in names :
+        for name in names:
             test_fail += await self.test_dict[name]()
             test_count += 1
             await self.reset()

@@ -11,4 +11,4 @@ async def tests_tdc_SD_1(dut):
     tests = []
     tests.append(TDCEnvironment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run(names=['SD_1'])
+        await test.run(names=['SD.1'])

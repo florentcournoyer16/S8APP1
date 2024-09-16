@@ -126,6 +126,7 @@ class BaseModel():
             
     def _handle_read(self, address: RegAddr) -> Tuple[int, int]:
         write_ack = 0
+        self._read_data = 0
         if address not in [RegAddr.CLEAR_SYNC_FLAG]:
             self._read_data = self._register_bank[hex(address.value)]
         return (write_ack, self._read_data)
