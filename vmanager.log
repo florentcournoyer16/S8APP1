@@ -1,7 +1,4 @@
 Cadence Verisium Manager(64): 23.03-s002: (c) Copyright 1995-2023 Cadence Design Systems Inc - Simulator version: 23.09-s006 - Coverage engine version: 23.09-s006
 Starting gui mode
-vmanager: *I,third_party.logfile: Log file can be viewed at /tmp/vmgr-vmanager.couf1001.fFpPhBJT1.1726509580015/base-utils-service/App_92a09cee-6918-4185-8596-d3928695a3a5.log
-vmanager: *I,runner.startingSession: Starting session /home/couf1001/Documents/github/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.couf1001.24_09_16_14_01_09_9173 started.
-vmanager: *I,runner.startingSession: Starting session /home/couf1001/Documents/github/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.couf1001.24_09_16_14_03_39_0316 started.
+vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
+vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_17_04_00_2932 started.

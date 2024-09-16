@@ -49,13 +49,13 @@ class CRC8Environment(BaseEnvironment):
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.TDC_THRESH)
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.EN_EVENT_COUNT_RATE)
-        if(self._mmc_list[0].crc8_error_count != 0):
+        if(self._mmc_list[0].error_count != 0):
             return 1
         return 0
 
     async def _test_crc8_SD_3(self) -> None:
         self._uart_agent.crc8_offset = 1
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
-        if(self._mmc_list[0].crc8_error_count != 0):
+        if(self._mmc_list[0].error_count != 0):
             return 1
         return 0
