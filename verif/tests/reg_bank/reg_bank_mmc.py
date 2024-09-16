@@ -21,6 +21,7 @@ class RegBankMMC(BaseMMC):
             clk=self._logicblock.clk,
             read_enable=self._logicblock.readEnable,
             write_enable=self._logicblock.writeEnable,
+            reset=self._logicblock.reset,
             datas=dict(
                 writeEnable=self._logicblock.writeEnable,
                 readEnable=self._logicblock.readEnable,
@@ -32,9 +33,11 @@ class RegBankMMC(BaseMMC):
             clk=self._logicblock.clk,
             read_enable=self._logicblock.readEnable,
             write_ack=self._logicblock.writeAck,
+            reset=self._logicblock.reset,
             datas=dict(
                 writeAck=self._logicblock.writeAck,
-                readData=self._logicblock.readData)
+                readData=self._logicblock.readData
+            )
         )
         return input_mon, output_mon
 

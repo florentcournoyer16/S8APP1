@@ -20,9 +20,9 @@ class RegBankEnvironment(BaseEnvironment):
             logger_name=type(self).__qualname__
         )
         self.test_dict = {
-            'SD.1' : self._test_SD_1,
-            'SD.2' : self._test_SD_2,
-            'SA.1' : self._test_SA_1
+            'SA.6' : self._test_SA_6,
+            'SD.4' : self._test_SD_4,
+            'SD.5' : self._test_SD_5
         }
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
@@ -82,22 +82,22 @@ class RegBankEnvironment(BaseEnvironment):
         assert final_response.data == hex(future_val)
         return 0
     
-    async def _test_SA_1(self) -> None:
-        test_name = "test_SA_1"
+    async def _test_SA_6(self) -> None:
+        test_name = "test_SA_6"
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
         
         values: List[Tuple[RegAddr, int]] = [
+            (RegAddr.PRODUCT_VER_ID, randint(0, 2**32)),
+            (RegAddr.TDC_THRESH, randint(0, 2**32)),
             (RegAddr.DATA_MODE, randint(0, 2**32)),
             (RegAddr.BIAS_MODE, randint(0, 2**32)),
             (RegAddr.EN_COUNT_RATE, randint(0, 2**32)),
             (RegAddr.EN_EVENT_COUNT_RATE, randint(0, 2**32)),
-            (RegAddr.TDC_THRESH, randint(0, 2**32)),
             (RegAddr.SRC_SEL, randint(0, 2**32)),
             (RegAddr.SYNC_FLAG_ERR, randint(0, 2**32)),
             (RegAddr.CLEAR_SYNC_FLAG, randint(0, 2**32)),
             (RegAddr.CHANNEL_EN_BITS, randint(0, 2**32)),
-            (RegAddr.PRODUCT_VER_ID, randint(0, 2**32))
         ]
 
         for value in values:
@@ -110,8 +110,8 @@ class RegBankEnvironment(BaseEnvironment):
         return self.error_handling(test_log)
 
 
-    async def _test_SD_1(self) -> int:
-        test_name = "test_SD_1"
+    async def _test_SD_4(self) -> int:
+        test_name = "test_SD_4"
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
 
@@ -132,11 +132,11 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=reg)
 
         values: List[Tuple[RegAddr, int]] = [
+            (RegAddr.TDC_THRESH, 0xFFFFFFFF),
             (RegAddr.DATA_MODE, 11),
             (RegAddr.BIAS_MODE, 11),
             (RegAddr.EN_COUNT_RATE, 1),
             (RegAddr.EN_EVENT_COUNT_RATE, 1),
-            (RegAddr.TDC_THRESH, 0xFFFFFFFF),
             (RegAddr.SRC_SEL, 1),
             (RegAddr.CLEAR_SYNC_FLAG, 1),
             (RegAddr.CHANNEL_EN_BITS, 0xFFFF)
@@ -149,12 +149,13 @@ class RegBankEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         return self.error_handling(test_log)
     
-    async def _test_SD_2(self) -> int:
-        test_name = "test_SD_1"
+    async def _test_SD_5(self) -> int:
+        test_name = "test_SD_5"
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
 
         values: List[Tuple[RegAddr, int]] = [
+            (RegAddr.PRODUCT_VER_ID, 0xFFFFFFFF),
             (RegAddr.DATA_MODE, 0xFFFFFFFF),
             (RegAddr.BIAS_MODE, 0xFFFFFFFF),
             (RegAddr.EN_COUNT_RATE, 0xFFFFFFFF),
@@ -163,7 +164,6 @@ class RegBankEnvironment(BaseEnvironment):
             (RegAddr.CLEAR_SYNC_FLAG, 0xFFFFFFFF),
             (RegAddr.SYNC_FLAG_ERR, 0xFFFFFFFF),
             (RegAddr.CHANNEL_EN_BITS, 0xFFFFFFFF),
-            (RegAddr.PRODUCT_VER_ID, 0xFFFFFFFF),
         ]
 
         for value in values:

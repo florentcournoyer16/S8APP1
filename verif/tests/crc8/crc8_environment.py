@@ -1,3 +1,4 @@
+from typing import List
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import UartConfig, UartTxCmd, BaseUartAgent
 from crc8.crc8_mmc import CRC8MMC
@@ -31,7 +32,7 @@ class CRC8Environment(BaseEnvironment):
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
         return CRC8UartAgent(uart_config)
 
-    async def _test(self, names:list[str]) -> None:
+    async def _test(self, names: List[str]) -> None:
         test_fail = 0
         test_count = 0
         for name in names :
@@ -52,20 +53,9 @@ class CRC8Environment(BaseEnvironment):
             return 1
         return 0
 
-
-
     async def _test_crc8_SD_3(self) -> None:
         self._uart_agent.crc8_offset = 1
         await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=RegAddr.PRODUCT_VER_ID)
         if(self._mmc_list[0].crc8_error_count != 0):
             return 1
         return 0
-
-    async def reset(self):
-        self._dut.reset.value = 1
-        Timer(100, units='ns')
-        #await self.trigger_agent.reset()
-        await self._uart_agent.reset()
-        for mmc in self._mmc_list:
-            await mmc.reset()
-        self._dut.reset.value = 0

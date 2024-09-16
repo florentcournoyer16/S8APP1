@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from enum import Enum
 from cocotbext.uart import UartSource, UartSink
 from cocotb.handle import ModifiableObject
@@ -120,13 +120,13 @@ class BaseUartAgent:
 
         return pkt
 
-    async def tdc_transaction(self, num_events: int = 1, timeout_cycles: int = 1000, retries: int = 60) -> list[UartRxPckt]:
+    async def tdc_transaction(self, num_events: int = 1, timeout_cycles: int = 1000, retries: int = 60) -> List[UartRxPckt]:
         response: Coroutine = await start(self._wait_for_tdc(num_events, timeout_cycles, retries))
-        rx_pkts: list[UartRxPckt] = await response
+        rx_pkts: List[UartRxPckt] = await response
         return rx_pkts
 
-    async def _wait_for_tdc(self, num_of_events: int, timeout_cycles: int, retries: int ) -> list[UartRxPckt]:
-        pkts: list[UartRxPckt] = []
+    async def _wait_for_tdc(self, num_of_events: int, timeout_cycles: int, retries: int ) -> List[UartRxPckt]:
+        pkts: List[UartRxPckt] = []
         try_counter = 1
         while (len(pkts) < num_of_events) and (try_counter <  retries):
             tdc_queue_size = self._tdc_queue.qsize()

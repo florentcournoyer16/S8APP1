@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 from cocotb.handle import ModifiableObject
 from cocotb.triggers import Timer
@@ -14,9 +15,9 @@ class BaseTriggerAgent():
     def __init__(self, trig: ModifiableObject):
         self._trig = trig
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
-    async def send_pulses(self, pulses: list[PulseConfig], units: str = "ns") -> None:
-        rise_time_list: list[int] = [pulse.rise_time for pulse in pulses]
-        fall_time_list: list[int] = [pulse.fall_time for pulse in pulses]
+    async def send_pulses(self, pulses: List[PulseConfig], units: str = "ns") -> None:
+        rise_time_list: List[int] = [pulse.rise_time for pulse in pulses]
+        fall_time_list: List[int] = [pulse.fall_time for pulse in pulses]
         gen_time = 0
         while len(fall_time_list) > 0:
             min_fall: int = min(fall_time_list)

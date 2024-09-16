@@ -5,10 +5,11 @@ from cocotb.handle import SimHandleBase
 
 
 class RegBankInputMonitor(BaseMonitor):
-    def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_enable: SimHandleBase, datas: Dict[str, SimHandleBase]):
+    def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_enable: SimHandleBase, reset: SimHandleBase, datas: Dict[str, SimHandleBase]):
         super(RegBankInputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
         self.read_enable: SimHandleBase = read_enable
         self.write_enable: SimHandleBase = write_enable
+        self.reset: SimHandleBase = reset
 
     async def _run(self) -> None:
         while True:
@@ -16,17 +17,21 @@ class RegBankInputMonitor(BaseMonitor):
             
             if self.write_enable.value.binstr == self.read_enable.value.binstr:
                 continue
+            
+            if self.reset.value.binstr == '1':
+                continue
      
             # store the samples, as formatted by the _sample method
             self.values.put_nowait(self._sample())
 
 class RegBankOutputMonitor(BaseMonitor):
-    def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_ack: SimHandleBase, datas: Dict[str, SimHandleBase]):
+    def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_ack: SimHandleBase, reset: SimHandleBase, datas: Dict[str, SimHandleBase]):
         super(RegBankOutputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
         self._read_enable = read_enable
         self._write_ack = write_ack
         self.read_event: Event = Event()
         self.write_event: Event = Event()
+        self.reset: SimHandleBase = reset
 
     async def _run(self) -> None:
         while True:
@@ -35,9 +40,12 @@ class RegBankOutputMonitor(BaseMonitor):
             if self._write_ack.value.binstr == self._read_enable.value.binstr:
                 continue
             
+            if self.reset.value.binstr == '1':
+                continue
+            
             if self._read_enable.value.binstr == '1':
                 # self._log.info("readEnable sampled")
-                await ClockCycles(self._clk, num_cycles=3, rising=True)
+                await ClockCycles(self._clk, num_cycles=2, rising=True)
             # else:
             #     self._log.info("writeAck sampled")
 
