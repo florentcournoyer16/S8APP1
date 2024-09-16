@@ -49,7 +49,7 @@ class RegBankMMC(BaseMMC):
     async def _checker(self) -> None:
         while True:
             # # dummy await, allows to run without checker implementation and verify monitors
-            # await ClockCycles(self._logicblock.clk, 1000, rising=True)
+            # await ClockCycles(self._logicblock.clk, 1000, rising=True) 
 
             in_mon_samples: Dict[str, int] = {}
             out_mon_samples: Dict[str, int] = {}
