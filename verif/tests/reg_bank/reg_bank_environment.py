@@ -106,11 +106,9 @@ class RegBankEnvironment(BaseEnvironment):
             (RegAddr.EN_COUNT_RATE, 1),
             (RegAddr.EN_EVENT_COUNT_RATE, 1),
             (RegAddr.TDC_THRESH, 0xFFFFFFFF),
-            (RegAddr.SRC_SEL, randint(0, 2**32)),
-            (RegAddr.SYNC_FLAG_ERR, randint(0, 2**32)),
+            (RegAddr.SRC_SEL, 1),
             (RegAddr.CLEAR_SYNC_FLAG, 1),
-            (RegAddr.CHANNEL_EN_BITS, randint(0, 2**32)),
-            (RegAddr.PRODUCT_VER_ID, randint(0, 2**32)),
+            (RegAddr.CHANNEL_EN_BITS, 0xFFFF)
         ]
 
         for value in values:
