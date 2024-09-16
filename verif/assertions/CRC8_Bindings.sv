@@ -176,11 +176,11 @@ ass_done_without_reset: assert property(prop_done_without_reset) else $display($
 cov_done_without_reset: cover property(prop_done_without_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_5_2_name, crc8_5_2_description);
 
 // ------------------------------------------------------
-string crc8_8_6_1_name = "CRC8.8.6.1"; string crc8_8_6_1_description = "o_match is both 0 and 1 when o_done is asserted";
+string crc8_8_6_1_name = "CRC8.8.6.1"; string crc8_8_6_1_description = "cov_match is both 0 and 1 when cov_done is asserted";
 string crc8_7_1_name = "CRC8.7.1"; string crc8_7_1_description = "cov_crc8 has a diverse bit coverage";
 // ------------------------------------------------------
 
-covergroup covg_out_sig @(posedge cov_clk iff(!cov_reset));
+covergroup covg_out_sig @(negedge cov_clk iff(!cov_reset));
     cop_match: coverpoint cov_match {
         bins cov_match_0 = {0};
         bins cov_match_1 = {1};
@@ -209,7 +209,7 @@ always @(posedge cov_clk) begin
 end
 
 // ------------------------------------------------------
-string crc8_6_2_name = "CRC8.6.2"; string crc8_6_2_description = "if cov_match is asserted, cov_done is asserted";
+string crc8_6_2_name = "CRC8.6.2"; string crc8_6_2_description = "cov_done is asserted when cov_match is asserted";
 // ------------------------------------------------------
 
 property prop_match_and_done;

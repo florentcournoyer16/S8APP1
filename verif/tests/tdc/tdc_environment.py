@@ -1,3 +1,4 @@
+from typing import List
 from cocotb.handle import HierarchyObject
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import RegAddr, UartConfig, UartTxCmd, UartRxPckt, UartRxType
