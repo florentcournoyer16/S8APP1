@@ -58,15 +58,10 @@ class TDCEnvironment(BaseEnvironment):
     async def _test(self, names : List[str]) -> None:
         test_fail = 0
         test_count = 0
-        if names[0] == 'SA.2':
-            await self._test_SA_2()
-            test_count += 1
-            await self.reset()
-
-        #for name in names:
-        #    test_fail += await self.test_dict[name]()
-        #    test_count += 1
-        #    await self.reset()
+        for name in names:
+           test_fail += await self.test_dict[name]()
+           test_count += 1
+           await self.reset()
             
         self._log.info("Sent %i pulses and received %i wrong values", self.smp_count, self.tdc_error_count)
         self._log.info("Ran %i tests with %i FAIL", test_count, test_fail)
