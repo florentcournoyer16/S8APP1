@@ -4,8 +4,10 @@ from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent, UartR
 from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.handle import HierarchyObject
 from base_model import BaseModel
-from random import randint, seed
-
+from random import randint
+from logging import Logger
+from cocotb.log import SimLog
+from crc8.crc8_mmc import CRC8MMC
 
 class RegBankEnvironment(BaseEnvironment):
     def __init__(
@@ -32,6 +34,10 @@ class RegBankEnvironment(BaseEnvironment):
             model=BaseModel(),
             logicblock_instance=self._dut.registers_dut
         ))
+        self._mmc_list.append(CRC8MMC(
+            model=BaseModel(),
+            logicblock_instance=self._dut.inst_packet_merger.inst_crc_calc
+        ))
 
     async def _test(self, names: List[str]) -> None:
         test_fail = 0
@@ -39,6 +45,7 @@ class RegBankEnvironment(BaseEnvironment):
         for name in names:
             test_fail += await self.test_dict[name]()
             test_count += 1
+            await self.reset()
 
         self._log.info("Ran %i tests with %i FAIL", test_count, test_fail)
         assert test_fail == 0
@@ -76,6 +83,10 @@ class RegBankEnvironment(BaseEnvironment):
         return 0
     
     async def _test_SA_1(self) -> None:
+        test_name = "test_SA_1"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+        
         values: List[Tuple[RegAddr, int]] = [
             (RegAddr.DATA_MODE, randint(0, 2**32)),
             (RegAddr.BIAS_MODE, randint(0, 2**32)),
@@ -94,10 +105,16 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
         
-        return 0
+        
+        test_log.info("Finished %s" % test_name)
+        return self.error_handling(test_log)
 
 
-    async def _test_SD_1(self) -> None:
+    async def _test_SD_1(self) -> int:
+        test_name = "test_SD_1"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         reg_list: List[RegAddr] = [
             RegAddr.DATA_MODE,
             RegAddr.BIAS_MODE,
@@ -129,9 +146,14 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
         
-        return 0
+        test_log.info("Finished %s" % test_name)
+        return self.error_handling(test_log)
     
-    async def _test_SD_2(self) -> None:
+    async def _test_SD_2(self) -> int:
+        test_name = "test_SD_1"
+        test_log = SimLog("cocotb.%s" % test_name)
+        test_log.info("Starting %s" % test_name)
+
         values: List[Tuple[RegAddr, int]] = [
             (RegAddr.DATA_MODE, 0xFFFFFFFF),
             (RegAddr.BIAS_MODE, 0xFFFFFFFF),
@@ -149,4 +171,12 @@ class RegBankEnvironment(BaseEnvironment):
             await self._uart_agent.transaction(cmd=UartTxCmd.WRITE, addr=value[0], data=value[1])
             await self._uart_agent.transaction(cmd=UartTxCmd.READ, addr=value[0], data=value[1])
         
+        test_log.info("Finished %s" % test_name)
+        return self.error_handling(test_log)
+
+    def error_handling(self, logger: Logger) -> int:
+        if(self._mmc_list[0].error_count):
+            logger.error("MMC FAIL : %i wrong values for readData or ackWrite", self._mmc_list[0].error_count)
+            return 1
         return 0
+    

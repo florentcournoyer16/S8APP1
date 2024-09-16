@@ -10,6 +10,7 @@ from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
 from base_mmc import BaseMMC
 from base_uart_agent import BaseUartAgent, UartConfig
+from logging import Logger
 
 @dataclass
 class DutConfig:
@@ -35,7 +36,7 @@ class BaseEnvironment:
         self.dut_config: DutConfig = dut_config
         self._uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
         self._mmc_list: List[BaseMMC] = []
-        self._log = SimLog("cocotb.%s" % logger_name)
+        self._log: Logger = SimLog("cocotb.%s" % logger_name)
 
     @property
     def dut_config(self) -> DutConfig:
@@ -75,12 +76,18 @@ class BaseEnvironment:
             out_sig=self._dut.out_sig,
             dut_clk=self._dut.clk,
         )
-
+        
     async def reset_dut(self) -> None:
         self._dut.reset.value = 1
         await start(Clock(self._dut.clk, 10, units="ns").start())
         await ClockCycles(self._dut.clk, 10, rising=True)
         self._dut.reset.value = 0
+
+    async def reset(self) -> None:
+        await self.reset_dut()
+        await self._uart_agent.reset()
+        for mmc in self._mmc_list:
+            await mmc.reset()
 
     def _load_config(self) -> None:
         pass

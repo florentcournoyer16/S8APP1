@@ -182,9 +182,8 @@ class BaseUartAgent:
         self._uart_rx_listenner.kill()
         self._uart_rx_listenner = None
 
-    async def reset(self):
+    async def reset(self) -> None:
         while(not self._tdc_queue.empty()):
             await self._tdc_queue.get()
         while(not self._reg_queue.empty()):
             await self._reg_queue.get()
-        return

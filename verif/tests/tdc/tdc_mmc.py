@@ -16,8 +16,8 @@ from base_uart_agent import TDCChannel
 class TDCMMC(BaseMMC):
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase, channel: TDCChannel):
         self._channel: TDCChannel = channel
-        self.error_pulse_width = 0
-        self.error_timestamp = 0
+        self.error_pulse_width: int = 0
+        self.error_timestamp: int = 0
         self.smp_count = 0
         super(TDCMMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__+'.CHAN'+str(self._channel.value))
 
@@ -57,17 +57,21 @@ class TDCMMC(BaseMMC):
             mon_pulse_width = hex(mon_samples["o_pulseWidth"])
             mon_timestamp = hex(mon_samples["o_timestamp"])
             
-            self.smp_count+=1
-            if model_pulse_width != mon_pulse_width :
+            try:
+                self.smp_count+=1
+                assert model_pulse_width == mon_pulse_width
+            except AssertionError:
                 self._log.error("%i. monitor_samples: o_pulseWidth = %s", self.smp_count, mon_pulse_width)
                 self._log.error("%i. model_samples: o_pulseWidth = %s", self.smp_count, model_pulse_width)
                 self.error_pulse_width += 1
-            if model_timestamp != mon_timestamp :
+            try:
+                assert model_timestamp == mon_timestamp
+            except AssertionError:
                 self._log.error("%i. monitor_samples: o_timestamp = %s", self.smp_count, mon_timestamp)
                 self._log.error("%i. model_samples: o_timestamp = %s", self.smp_count, model_timestamp)
                 self.error_timestamp += 1
 
-    async def reset(self) :
+    async def reset(self) -> None:
         self.smp_count = 0
         self.error_pulse_width = 0
         self.error_timestamp = 0

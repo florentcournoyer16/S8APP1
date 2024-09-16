@@ -6,8 +6,8 @@ from base_trigger_agent import BaseTriggerAgent, PulseConfig, TDCChannel
 from tdc.tdc_mmc import TDCMMC
 from base_model import BaseModel, RegAddr
 from cocotb.triggers import ClockCycles, Timer
-from random import randint, seed
-from cocotb import start, Coroutine, Task, start_soon
+from random import randint
+from cocotb import start_soon
 from crc8.crc8_mmc import CRC8MMC
 from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.log import SimLog
@@ -127,7 +127,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) > 1):
-            test_log.info("FAIL : CHAN0 sent data while disabled")
+            test_log.error("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
             test_log.info("SUCCESS")
@@ -166,7 +166,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) == 20):
-            test_log.info("FAIL : CHAN0 saw the wrong number of pulses")
+            test_log.error("FAIL : CHAN0 saw the wrong number of pulses")
             return 1
         else:
             test_log.info("SUCCESS")
@@ -206,7 +206,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) == 18):
-            test_log.info("FAIL : CHAN0 sent data while disabled")
+            test_log.error("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
             test_log.info("SUCCESS")
@@ -255,12 +255,12 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) == 20):
-            test_log.info("FAIL : CHAN0 sent data while disabled")
+            test_log.error("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
             test_log.info("SUCCESS")
             return 0
-            
+
     async def _test_SD_1(self) -> int:
         # Initialise this test logger
         test_name = "test_SD_1"
@@ -286,7 +286,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) == 2):
-            test_log.info("FAIL : CHAN0 sent data while disabled")
+            test_log.error("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
             test_log.info("SUCCESS")
@@ -316,33 +316,24 @@ class TDCEnvironment(BaseEnvironment):
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(self._uart_agent._tdc_queue.qsize() != 0):
-            test_log.info("FAIL : CHAN0 sent data while disabled")
+            test_log.error("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
             test_log.info("SUCCESS")
             return 0
 
-    async def reset(self):
-        self._dut.reset.value = 1
-        Timer(100, units='ns')
-        #await self.trigger_agent.reset()
-        await self._uart_agent.reset()
-        for mmc in self._mmc_list:
-            await mmc.reset()
-        self._dut.reset.value = 0
-
     def error_handling(self, logger):
         if(self._mmc_list[0].error_timestamp):
-            logger.info("MMC FAIL : %i o_timestamp out of %i were wrong in CH0", self._mmc_list[0].error_timestamp, self._mmc_list[0].smp_count)
+            logger.error("MMC FAIL : %i o_timestamp out of %i were wrong in CH0", self._mmc_list[0].error_timestamp, self._mmc_list[0].smp_count)
             self.tdc_error_count += self._mmc_list[0].error_timestamp
         if(self._mmc_list[0].error_pulse_width):
-            logger.info("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH0", self._mmc_list[0].error_pulse_width, self._mmc_list[0].smp_count)
+            logger.error("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH0", self._mmc_list[0].error_pulse_width, self._mmc_list[0].smp_count)
             self.tdc_error_count += self._mmc_list[0].error_pulse_width
         if(self._mmc_list[1].error_timestamp):
-            logger.info("MMC FAIL : %i o_timestamp out of %i were wrong in CH1", self._mmc_list[1].error_timestamp, self._mmc_list[0].smp_count)
+            logger.error("MMC FAIL : %i o_timestamp out of %i were wrong in CH1", self._mmc_list[1].error_timestamp, self._mmc_list[0].smp_count)
             self.tdc_error_count += self._mmc_list[1].error_timestamp
         if(self._mmc_list[1].error_pulse_width):
-            logger.info("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH1", self._mmc_list[1].error_pulse_width, self._mmc_list[0].smp_count)
+            logger.error("MMC FAIL : %i o_pulseWidth out of %i were wrong in CH1", self._mmc_list[1].error_pulse_width, self._mmc_list[0].smp_count)
             self.tdc_error_count += self._mmc_list[1].error_pulse_width
         self.smp_count += self._mmc_list[0].smp_count
         self.smp_count += self._mmc_list[1].smp_count
