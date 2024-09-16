@@ -51,3 +51,6 @@ class BaseMMC:
 
     async def _checker(self) -> None:
         raise NotImplementedError("Override this method in daughter class")
+
+    async def reset(self):
+        return

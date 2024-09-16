@@ -23,6 +23,9 @@ class TDCMMC(BaseMMC):
 
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase, channel: TDCChannel):
         self._channel: TDCChannel = channel
+        self.error_pulse_width = 0
+        self.error_timestamp = 0
+        self.smp_count = 0
         super(TDCMMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__+'.CHAN'+str(self._channel.value))
 
     def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
@@ -36,6 +39,7 @@ class TDCMMC(BaseMMC):
         output_mon: BaseMonitor = TDCOutputMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.o_hasEvent,
+            reset=self._logicblock.reset,
             datas=dict(o_pulseWidth=self._logicblock.o_pulseWidth, o_timestamp=self._logicblock.o_timestamp),
             channel=self._channel
         )
@@ -46,21 +50,31 @@ class TDCMMC(BaseMMC):
     # This example might not work every time.
     async def _checker(self) -> None:
         mon_samples: Dict[str, int] = {}
-        smp_num = 0
+        self.smp_count = 0
         while True:
-            smp_num+=1
             model_samples: tuple[int, int] = await self._model.tdc(
                 i_trig_rising=self._input_mon.i_trig_rising,
                 i_trig_falling=self._input_mon.i_trig_falling
             )
             model_pulse_width = hex(int(model_samples[0]))
             model_timestamp = hex(int(model_samples[1]))
-            self._log.info("%i. model_samples: o_pulseWidth = %s, o_timestamp = %s", smp_num, model_pulse_width, model_timestamp)
+            #self._log.info("%i. model_samples: o_pulseWidth = %s, o_timestamp = %s", self.smp_count, model_pulse_width, model_timestamp)
 
             mon_samples = await self._output_mon.values.get()
             mon_pulse_width = hex(mon_samples["o_pulseWidth"])
             mon_timestamp = hex(mon_samples["o_timestamp"])
-            self._log.info("%i. monitor_samples: o_pulseWidth = %s, o_timestamp = %s", smp_num, mon_pulse_width, mon_timestamp)
             
-            #assert model_pulse_width == mon_pulse_width
-            #assert model_timestamp == mon_timestamp
+            self.smp_count+=1
+            if model_pulse_width != mon_pulse_width :
+                self._log.error("%i. monitor_samples: o_pulseWidth = %s", self.smp_count, mon_pulse_width)
+                self._log.error("%i. model_samples: o_pulseWidth = %s", self.smp_count, model_pulse_width)
+                self.error_pulse_width += 1
+            if model_timestamp != mon_timestamp :
+                self._log.error("%i. monitor_samples: o_timestamp = %s", self.smp_count, mon_timestamp)
+                self._log.error("%i. model_samples: o_timestamp = %s", self.smp_count, model_timestamp)
+                self.error_timestamp += 1
+
+    async def reset(self) :
+        self.smp_count = 0
+        self.error_pulse_width = 0
+        self.error_timestamp = 0

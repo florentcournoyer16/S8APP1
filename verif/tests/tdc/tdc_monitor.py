@@ -33,8 +33,9 @@ class TDCInputMonitor(BaseMonitor):
                     self.i_trig_falling.clear()
 
 class TDCOutputMonitor(BaseMonitor):
-    def __init__(self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase], channel: TDCChannel):
+    def __init__(self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase], channel: TDCChannel, reset: SimHandleBase):
         self._channel = channel
+        self._reset = reset
         super(TDCOutputMonitor, self).__init__(clk, valid, datas, logger_name=type(self).__qualname__+'.CHAN'+str(self._channel.value))
 
     async def _run(self) -> None:

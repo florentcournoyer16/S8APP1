@@ -24,5 +24,10 @@ group example_group {
 
     // test sanity {count : 1;};
     // test sanity_random {count : 10;};
-    test tests_tdc {count : 1;};
+    test tests_tdc_SA1 {count : 1;};
+    test tests_tdc_SA2 {count : 1;};
+    test tests_tdc_SA3 {count : 1;};
+    test tests_tdc_SA4 {count : 1;};
+    test tests_tdc_SD1 {count : 1;};
+    test tests_tdc_SD2 {count : 1;};
 };
