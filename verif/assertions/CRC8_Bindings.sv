@@ -176,7 +176,7 @@ ass_done_without_reset: assert property(prop_done_without_reset) else $display($
 cov_done_without_reset: cover property(prop_done_without_reset_) $display($stime,,, "\t %-10s \t %-80s \t PASS", crc8_5_2_name, crc8_5_2_description);
 
 // ------------------------------------------------------
-string crc8_8_6_1_name = "CRC8.8.6.1"; string crc8_8_6_1_description = "o_match is both 0 and 1 when o_done is asserted";
+string crc8_8_6_1_name = "CRC8.8.6.1"; string crc8_8_6_1_description = "cov_match is both 0 and 1 when cov_done is asserted";
 string crc8_7_1_name = "CRC8.7.1"; string crc8_7_1_description = "cov_crc8 has a diverse bit coverage";
 // ------------------------------------------------------
 

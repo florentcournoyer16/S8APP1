@@ -139,7 +139,6 @@ string rb_8_1_name = "RB.8.1"; string rb_8_1_description = "cov_writeEnable is a
 
 covergroup covg_register_access
     @(negedge cov_clk && (cov_readEnable || cov_writeEnable) iff(!cov_reset));
-	option.name		= "cov_RegisterAccess";
     cop_readEnable: coverpoint cov_readEnable {
 		bins read_bins = {1};
 	}
