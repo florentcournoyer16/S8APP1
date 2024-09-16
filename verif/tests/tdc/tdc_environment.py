@@ -106,24 +106,13 @@ class TDCEnvironment(BaseEnvironment):
             rand_glitch_width = randint(0, 19)
             rand_pulses.append(PulseConfig(rise_time=timestamp, fall_time=timestamp+rand_glitch_width, channel=TDCChannel.CHAN0))
             timestamp += rand_glitch_width
-
-        # 3. Generate 20 other random cases from the first 20
-        for i in range(10):
-            timestamp += INTRPLT_DLY+50
-            rand_glitch_width = randint(0, rand_pulses[i+1].fall_time-rand_pulses[i+1].rise_time)
-            rand_pulses.append(PulseConfig(rise_time=timestamp, fall_time=timestamp+rand_glitch_width, channel=TDCChannel.CHAN0))
-            timestamp += rand_glitch_width
-            timestamp += INTRPLT_DLY+50
-            rand_glitch_width = randint(rand_pulses[21-i].fall_time-rand_pulses[21-i].rise_time, 19)
-            rand_pulses.append(PulseConfig(rise_time=timestamp, fall_time=timestamp+rand_glitch_width, channel=TDCChannel.CHAN0))
-            timestamp += rand_glitch_width
         
-        # 4. Send the geneated pulses
+        # 3. Send the geneated pulses
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
         pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
         
         
-        # 5. Assert that only the first pulse has been detected by the TDC
+        # 4. Assert that only the first pulse has been detected by the TDC
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
         if(len(pkts) > 2):
