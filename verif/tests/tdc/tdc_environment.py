@@ -12,7 +12,7 @@ from crc8.crc8_mmc import CRC8MMC
 from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.log import SimLog
 
-INTRPLT_DLY = 3000
+INTRPLT_DLY = 2010
 
 class TDCEnvironment(BaseEnvironment):
     def __init__(
@@ -126,8 +126,8 @@ class TDCEnvironment(BaseEnvironment):
         # 5. Assert that only the first pulse has been detected by the TDC
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
-        if(len(pkts) > 1):
-            test_log.error("FAIL : CHAN0 sent data while disabled")
+        if(len(pkts) > 2):
+            test_log.error("FAIL : CHAN0 detected pulses less than 20ns of pulse width")
             return 1
         else:
             test_log.info("SUCCESS")
@@ -276,17 +276,15 @@ class TDCEnvironment(BaseEnvironment):
         assert response_ch0.type == UartRxType.ACK_WRITE
 
         self._dut.sipms[0].value = 1
-
-        Timer(20, units='us')
-
-        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=3)
-
+        await Timer(20, units='us')
         self._dut.sipms[0].value = 0
+        
+        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=3)      
 
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
-        if(len(pkts) == 2):
-            test_log.error("FAIL : CHAN0 sent data while disabled")
+        if(len(pkts) != 2):
+            test_log.error("FAIL : CHAN0 detected too many pulses")
             return 1
         else:
             test_log.info("SUCCESS")

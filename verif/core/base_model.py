@@ -96,8 +96,8 @@ class BaseModel():
             timestamp = rising_timestamp % (40 * (2 ** 32))  # Wrap timestamps @ 171ms
 
             # Cap pulse width to 50us
-            if pulse_width > 50 * 10 ** 6:
-                pulse_width = 50 * 10 ** 6
+            if pulse_width > 5 * 10 ** 6:
+                pulse_width = 5 * 10 ** 6
 
             #self._log.info("initial_timestamp = %s", initial_timestamp)
             #self._log.info("rising_timestamp = %s", rising_timestamp)
