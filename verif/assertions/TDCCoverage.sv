@@ -179,7 +179,7 @@ covergroup covg_out_sig
     @(negedge cov_clk iff(!cov_reset));
     cop_hasEvent: coverpoint cov_hasEvent;
     cop_TS: coverpoint cov_TS {
-		bins possible_values[] = {[0:10]};
+		bins possible_values[] = {[0:4275000000]};
 	}
     cop_TOT: coverpoint cov_TOT {
 		bins possible_values[] = {[0:1250000]};
