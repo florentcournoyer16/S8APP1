@@ -1,0 +1,21 @@
+vmanager: *I,MERGL1: Preparing icc target model ...
+vmanager: *I,MERGL1: Doing model union ...
+vmanager: *I,MERGL2:   With primary run (/home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/model_dir): /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/model_dir/icc_00000000_6c0e51c8.ucm
+vmanager: *I,MERGL1: Target model generated successfully.
+vmanager: *I,MERGL1: Projecting data into the target model ...
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_3/sim_build/cov_work/scope/tests_tdc_SA3:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_2/sim_build/cov_work/scope/tests_tdc_SA2:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_4/sim_build/cov_work/scope/tests_tdc_SA4:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL1: Projecting data into the target model ...
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_1/sim_build/cov_work/scope/tests_tdc_SA1:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_5/sim_build/cov_work/scope/tests_tdc_SD1:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL2:   /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/chain_0/example_group/run_6/sim_build/cov_work/scope/tests_tdc_SD2:
+vmanager: *I,MERGL3:       Data is projected in to the target model.
+vmanager: *I,MERGL1: Writing icc model to /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/merged_ucds/default/1726501845982/icc_00000000_6c0e51c8.ucm(merged)
+vmanager: *I,MERGL1: Writing icc data to /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/regression_area/example_session.norc2802.24_09_16_11_45_19_5958/merged_ucds/default/1726501845982/merged_tests/icc_00000000_6c0e51c8.ucd(merged)
+vmanager: *I,coverage.merge_op_done_no_warns: Merge operation (session runs merge) is done without any conflicts.

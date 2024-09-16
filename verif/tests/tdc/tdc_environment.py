@@ -26,6 +26,12 @@ class TDCEnvironment(BaseEnvironment):
         self.trigger_agent = BaseTriggerAgent(dut.sipms)
         self.tdc_error_count = 0
         self.smp_count = 0
+        self.test_dict = {'SD1' : self._test_SD_1,
+                          'SD2' : self._test_SD_2,
+                          'SA1' : self._test_SA_1,
+                          'SA2' : self._test_SA_2,
+                          'SA3' : self._test_SA_3,
+                          'SA4' : self._test_SA_4}
     
     def _build_env(self) -> None:
         super(TDCEnvironment, self)._build_env()
@@ -40,33 +46,14 @@ class TDCEnvironment(BaseEnvironment):
             channel=TDCChannel.CHAN1
         ))
 
-    async def _test(self, name: str) -> None:
+    async def _test(self, names : list[str]) -> None:
         test_fail = 0
         test_count = 0
-        if(name == 'SA1'):
-            test_fail += await self._test_SA_1()
+        for name in names :
+            test_fail += await self.test_dict[name]()
             test_count += 1
             await self.reset()
-        if(name == 'SA2'):
-            test_fail += await self._test_SA_2()
-            test_count += 1
-            await self.reset()
-        if(name == 'SA3'):
-            test_fail += await self._test_SA_3()
-            test_count += 1
-            await self.reset()
-        if(name == 'SA4'):
-            test_fail += await self._test_SA_4()
-            test_count += 1
-            await self.reset()
-        if(name == 'SD1'):
-            test_fail += await self._test_SD_1()
-            test_count += 1
-            await self.reset()
-        if(name == 'SD2'):
-            test_fail += await self._test_SD_2()
-            test_count += 1
-            await self.reset()
+            
         self._log.info("Sent %i pulses and received %i wrong values", self.smp_count, self.tdc_error_count)
         self._log.info("Ran %i tests with %i FAIL", test_count, test_fail)
         assert test_fail == 0
@@ -319,7 +306,7 @@ class TDCEnvironment(BaseEnvironment):
 
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
-        if(self._uart_agent._tdc_queue.qsize() == 0):
+        if(self._uart_agent._tdc_queue.qsize() != 0):
             test_log.info("FAIL : CHAN0 sent data while disabled")
             return 1
         else:
