@@ -37,7 +37,7 @@ class RegBankOutputMonitor(BaseMonitor):
             
             if self._read_enable.value.binstr == '1':
                 self._log.info("readEnable sampled")
-                await ClockCycles(self._clk, num_cycles=1, rising=True)
+                await ClockCycles(self._clk, num_cycles=3, rising=True)
             else:
                 self._log.info("writeAck sampled")
 

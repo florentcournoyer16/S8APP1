@@ -5,10 +5,10 @@ from base_uart_agent import UartConfig
 
 
 @test()
-async def tests_reg_bank(dut):
+async def tests_reg_bank_SA_1(dut):
     dut_config = DutConfig()
     uart_config = UartConfig()
     tests = []
     tests.append(RegBankEnvironment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run()
+        await test.run(name="SA.1")

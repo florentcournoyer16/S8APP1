@@ -52,13 +52,14 @@ class RegBankMMC(BaseMMC):
             # await ClockCycles(self._logicblock.clk, 1000, rising=True)
 
             in_mon_samples: Dict[str, int] = {}
+            out_mon_samples: Dict[str, int] = {}
             
             in_mon_samples = await self._input_mon.values.get()
             
-            write_enable = in_mon_samples["writeEnable"]
-            read_enable = in_mon_samples["readEnable"]
-            address = in_mon_samples["address"]
-            write_data = in_mon_samples["writeData"]
+            write_enable: int = in_mon_samples["writeEnable"]
+            read_enable: int = in_mon_samples["readEnable"]
+            address: int = in_mon_samples["address"]
+            write_data: int = in_mon_samples["writeData"]
             
             self._log.info(
                 "write_enable = %s, read_enable = %s, address = %s, write_data = %s",
@@ -72,17 +73,17 @@ class RegBankMMC(BaseMMC):
                 address=address,
                 write_data=write_data
             )
-            self._log.info("model_output = %s", model_output)
+            # self._log.info("model_output = %s", model_output)
             write_ack_model = model_output[0]
             read_data_model = model_output[1]
 
             out_mon_samples = await self._output_mon.values.get()
             
-            write_ack_mon = out_mon_samples["writeAck"]
-            read_data_mon = out_mon_samples["readData"]
+            write_ack_mon: int = out_mon_samples["writeAck"]
+            read_data_mon: int = out_mon_samples["readData"]
 
             self._log.info("write_ack_mon = %s, read_data_mon = %s", hex(write_ack_mon), hex(read_data_mon))
             self._log.info("write_ack_model = %s, read_data_model = %s", hex(write_ack_model), hex(read_data_model))
 
-            assert (write_ack_model == write_ack_mon)
-            assert (read_data_model == read_data_model)
+            assert (hex(write_ack_model) == hex(write_ack_mon))
+            assert (hex(read_data_model) == hex(read_data_mon))

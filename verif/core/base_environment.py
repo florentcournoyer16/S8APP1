@@ -90,7 +90,7 @@ class BaseEnvironment:
     async def _test(self, name):
         raise NotImplementedError("Override this method in daughter class")
 
-    async def run(self, name:str='') -> None:
+    async def run(self, name: str) -> None:
         self._log.info("Starting test: %s", self._test_name)
         self._gen_config()
         self._build_env()

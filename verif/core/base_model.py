@@ -33,8 +33,9 @@ class BaseModel():
             "0x6": 0x00000000,  # R
             "0x7": 0x00000000,  # W
             "0x8": 0x00000000,  # RW
-            "0x9": 0x0BADFACE,  # R
+            "0x9": 0xBADEFACE,  # R
         }
+        self._read_data = 0
         
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
 
@@ -125,18 +126,16 @@ class BaseModel():
             
     def _handle_read(self, address: RegAddr) -> Tuple[int, int]:
         write_ack = 0
-        read_data = 0
-        if address != RegAddr.CLEAR_SYNC_FLAG:
-            read_data = self._register_bank[hex(address.value)]
-        return (write_ack, read_data)
+        if address not in [RegAddr.CLEAR_SYNC_FLAG]:
+            self._read_data = self._register_bank[hex(address.value)]
+        return (write_ack, self._read_data)
     
     def _handle_write(self, address: RegAddr,  write_data: int):
         write_ack = 0
-        read_data = 0
         if address in [RegAddr.TDC_THRESH]:
             self._register_bank[hex(address.value)] = write_data
             write_ack = 1
-        if address in [RegAddr.EN_COUNT_RATE, RegAddr.EN_EVENT_COUNT_RATE, RegAddr.SRC_SEL]:
+        if address in [RegAddr.EN_COUNT_RATE, RegAddr.EN_EVENT_COUNT_RATE, RegAddr.SRC_SEL, RegAddr.CLEAR_SYNC_FLAG]:
             self._register_bank[hex(address.value)] = write_data & 0x00000001
             write_ack = 1
         if address in [RegAddr.DATA_MODE, RegAddr.BIAS_MODE]:
@@ -145,7 +144,6 @@ class BaseModel():
         if address in [RegAddr.CHANNEL_EN_BITS]:
             self._register_bank[hex(address.value)] = write_data & 0x0000FFFF
             write_ack = 1
-        if address in [RegAddr.SYNC_FLAG_ERR]:
+        if address in [RegAddr.SYNC_FLAG_ERR, RegAddr.PRODUCT_VER_ID]:
             write_ack = 1
-        return (write_ack, read_data)
-            
+        return (write_ack, self._read_data)

@@ -40,7 +40,7 @@ class TDCEnvironment(BaseEnvironment):
             channel=TDCChannel.CHAN1
         ))
 
-    async def _test(self, name : str) -> None:
+    async def _test(self, name: str) -> None:
         test_fail = 0
         test_count = 0
         if(name == 'SA1'):
