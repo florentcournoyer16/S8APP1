@@ -17,13 +17,16 @@ class BaseTriggerAgent():
     async def send_pulses(self, pulses: list[PulseConfig], units: str = "ns") -> None:
         rise_time_list: list[int] = [pulse.rise_time for pulse in pulses]
         fall_time_list: list[int] = [pulse.fall_time for pulse in pulses]
+        gen_time = 0
         while len(fall_time_list) > 0:
             min_fall: int = min(fall_time_list)
             if len(rise_time_list) > 0:
                 min_rise: int = min(rise_time_list)
             else:
                 min_rise = min(fall_time_list)+1
-            await Timer(min([min_fall, min_rise]), units=units)
+            
+            await Timer(min([min_fall, min_rise])-gen_time, units=units)
+            gen_time = min([min_fall, min_rise])
             if min_rise < min_fall:
                 for pulse in pulses:
                     if pulse.rise_time == min_rise:
