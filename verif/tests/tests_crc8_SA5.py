@@ -11,4 +11,4 @@ async def tests_crc8_SA5(dut):
     tests = []
     tests.append(CRC8Environment(dut, dut_config, uart_config))
     for test in tests:
-        await test.run(names['SA5'])
+        await test.run(names=['SA5'])
