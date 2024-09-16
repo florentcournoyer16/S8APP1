@@ -1,9 +1,9 @@
 from base_environment import BaseEnvironment, DutConfig
-from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent
+from base_uart_agent import UartConfig, UartTxCmd, BaseUartAgent
 from crc8.crc8_mmc import CRC8MMC
 from crc8.crc8_uart_agent import CRC8UartAgent
 from cocotb.handle import HierarchyObject
-from base_model import BaseModel
+from base_model import BaseModel, RegAddr
 
 
 class CRC8Environment(BaseEnvironment):

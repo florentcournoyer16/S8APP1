@@ -1,22 +1,47 @@
 import cocotb
 
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 from bitarray.util import int2ba, ba2int
 from cocotb.triggers import Event, Timer, First
 from cocotb.utils import get_sim_time
 from cocotb.log import SimLog
+from uart_packets import RegAddr
 
 CRC8_START = 0x0D
 CRC_POLY = 0xC6
 
+class RegAddr(Enum):
+    DATA_MODE = 0x00            # RW
+    BIAS_MODE = 0x01            # RW
+    EN_COUNT_RATE = 0x02        # RW
+    EN_EVENT_COUNT_RATE = 0x03  # RW
+    TDC_THRESH = 0x04           # RW
+    SRC_SEL = 0x05              # RW
+    SYNC_FLAG_ERR = 0x06        # R
+    CLEAR_SYNC_FLAG = 0x07      # W
+    CHANNEL_EN_BITS = 0x08      # RW
+    PRODUCT_VER_ID = 0x09       # R
+
 class BaseModel():
     def __init__(self) -> None:
-        self.current_crc = CRC8_START
+        self._current_crc = CRC8_START
+        self._register_bank = {
+            "0x0": 0x00000000,  # RW
+            "0x1": 0x00000000,  # RW
+            "0x2": 0x00000000,  # RW
+            "0x3": 0x00000000,  # RW
+            "0x4": 0x00000000,  # RW
+            "0x5": 0x00000000,  # RW
+            "0x6": 0x00000000,  # R
+            "0x7": 0x00000000,  # W
+            "0x8": 0x00000000,  # RW
+            "0x9": 0x0BADFACE,  # R
+        }
         
         self._log = SimLog("cocotb.%s" % type(self).__qualname__)
 
     def _crc8_single_cycle(self, new_byte):
-        crc = int2ba(self.current_crc, 8)
+        crc = int2ba(self._current_crc, 8)
         data_bits = int2ba(new_byte, 8)
         poly = int2ba(CRC_POLY, 8)
         for j in range(7, -1, -1):
@@ -27,7 +52,7 @@ class BaseModel():
         return ba2int(crc)
 
     def crc8(self, bytes_array: bytes) -> int:
-        self.current_crc = CRC8_START
+        self._current_crc = CRC8_START
         crc = bytes_array[len(bytes_array)-1]
         data = bytes_array[:len(bytes_array)-1]
 
@@ -36,9 +61,9 @@ class BaseModel():
         # self._log.info(f"crc = {[hex(crc)]}")
 
         for current_byte in data:
-            self.current_crc = self._crc8_single_cycle(current_byte)
+            self._current_crc = self._crc8_single_cycle(current_byte)
             # self._log.info(f"current crc = {hex(current_crc)}")
-        if self.current_crc == crc:
+        if self._current_crc == crc:
             return 1
         return 0
 
@@ -90,7 +115,28 @@ class BaseModel():
                 i_trig_rising=i_trig_rising,
                 i_trig_falling=i_trig_falling
             )
+    
+    def register_bank(self, i_read_enable: int, i_write_enable: int, i_address: int, i_write_data: int = 0) -> Tuple[int, int]:
+        i_address = RegAddr(i_address)
+        if i_read_enable == '1' and i_write_enable == '0':
+            return self._handle_read(i_address=i_address)
+        elif i_write_enable == '1' and i_read_enable == '0':
+            return self._handle_write(i_address=i_address, i_write_data=i_write_data)
+        else:
+            raise ValueError('read_enable and write_enable cannot be equal')
             
-
+    def _handle_read(self, i_address: RegAddr) -> Tuple[int, int]:
+        write_ack = 0
+        read_data = 0
+        if i_address != RegAddr.CLEAR_SYNC_FLAG:
+            read_data = self._register_bank[str(i_address.value)]
+        return (write_ack, read_data)
+    
+    def _handle_write(self, i_address: RegAddr,  i_write_data: int):
+        write_ack = 0
+        read_data = 0
+        if i_address not in [RegAddr.SRC_SEL, RegAddr.PRODUCT_VER_ID]:
+            self._register_bank[str(i_address.value)] = i_write_data
+            write_ack = 1
+            return (write_ack, read_data)
             
-

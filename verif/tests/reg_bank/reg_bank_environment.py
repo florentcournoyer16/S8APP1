@@ -1,7 +1,9 @@
 from base_environment import BaseEnvironment, DutConfig
 from base_uart_agent import RegAddr, UartConfig, UartTxCmd, BaseUartAgent, UartRxPckt
+from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.handle import HierarchyObject
-from cocotb import start_soon
+from base_model import BaseModel
+
 
 class RegBankEnvironment(BaseEnvironment):
     def __init__(
@@ -17,6 +19,13 @@ class RegBankEnvironment(BaseEnvironment):
 
     def _set_uart_agent(self, uart_config: UartConfig) -> BaseUartAgent:
         return BaseUartAgent(uart_config)
+    
+    def _build_env(self) -> None:
+        super(RegBankEnvironment, self)._build_env()
+        self._mmc_list.append(RegBankMMC(
+            model=BaseModel(),
+            logicblock_instance=self._dut.register_dut
+        ))
 
     async def _test(self) -> None:
         await self._test_read_prod_id()

@@ -1,10 +1,10 @@
 from typing import List
 from cocotb.handle import HierarchyObject
 from base_environment import BaseEnvironment, DutConfig
-from base_uart_agent import RegAddr, UartConfig, UartTxCmd, UartRxPckt, UartRxType
+from base_uart_agent import UartConfig, UartTxCmd, UartRxPckt, UartRxType
 from base_trigger_agent import BaseTriggerAgent, PulseConfig, TDCChannel
 from tdc.tdc_mmc import TDCMMC
-from base_model import BaseModel
+from base_model import BaseModel, RegAddr
 from cocotb.triggers import ClockCycles, Timer
 from random import randint, seed
 from cocotb import start, Coroutine, Task, start_soon

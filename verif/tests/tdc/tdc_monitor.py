@@ -1,7 +1,6 @@
 from base_monitor import BaseMonitor
-from cocotb.triggers import Edge, RisingEdge
+from cocotb.triggers import Edge, RisingEdge, Event, ClockCycles
 from cocotb.handle import SimHandleBase
-from cocotb.triggers import Event, ClockCycles
 from base_uart_agent import TDCChannel
 
 from typing import Dict

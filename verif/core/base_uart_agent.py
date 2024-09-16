@@ -8,7 +8,8 @@ from bitarray.util import int2ba, ba2int
 from cocotb.triggers import ClockCycles
 from cocotb.log import SimLog
 from cocotb.queue import Queue
-from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, RegAddr, UartConfig, UartRxType
+from uart_packets import UartRxPckt, UartTxPckt, UartTxCmd, UartConfig, UartRxType
+from base_model import RegAddr
 
 class TDCChannel(Enum):
     CHAN0 = 0x0

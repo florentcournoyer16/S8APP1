@@ -1,25 +1,14 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, Tuple
 from cocotb.binary import BinaryValue
 from cocotb.log import SimLog
 from enum import Enum
 from logging import Logger
+from base_model import RegAddr
 
 
 class UartTxCmd(Enum):
     READ = 0x0
     WRITE = 0x1
-    
-class RegAddr(Enum):
-    DATA_MODE = 0x00  # RW
-    BIAS_MODE = 0x01  # RW
-    EN_COUNT_RATE = 0x02  # RW
-    EN_EVENT_COUNT_RATE = 0x03  # RW
-    TDC_THRESH = 0x04  # RW
-    SRC_SEL = 0x05  # RW
-    SYNC_FLAG_ERR = 0x06  # R
-    CLEAR_SYNC_FLAG = 0x07  # W
-    CHANNEL_EN_BITS = 0x08  # RW
-    PRODUCT_VER_ID = 0x09  # R
 
 class UartRxType(Enum):
     NACK = 0x0
@@ -29,19 +18,19 @@ class UartRxType(Enum):
 
 @dataclass
 class UartTxPktStruct:
-    cmd_pos: tuple[int, int] = field(default_factory=lambda: (43, 48))
-    res_pos: tuple[int, int] = field(default_factory=lambda: (40, 43))
-    addr_pos: tuple[int, int] = field(default_factory=lambda: (32, 40))
-    data_pos: tuple[int, int] = field(default_factory=lambda: (0, 32))
+    cmd_pos: Tuple[int, int] = field(default_factory=lambda: (43, 48))
+    res_pos: Tuple[int, int] = field(default_factory=lambda: (40, 43))
+    addr_pos: Tuple[int, int] = field(default_factory=lambda: (32, 40))
+    data_pos: Tuple[int, int] = field(default_factory=lambda: (0, 32))
     
 @dataclass
 class UartRxPktStruct:
-    type_pos: tuple[int, int] = field(default_factory=lambda: (43, 48))
-    res1_pos: tuple[int, int] = field(default_factory=lambda: (40, 43))
-    num_pos: tuple[int, int] = field(default_factory=lambda: (38, 40))
-    chan_pos: tuple[int, int] = field(default_factory=lambda: (34, 38))
-    res0_pos: tuple[int, int] = field(default_factory=lambda: (32, 34))
-    data_pos: tuple[int, int] = field(default_factory=lambda: (0, 32))
+    type_pos: Tuple[int, int] = field(default_factory=lambda: (43, 48))
+    res1_pos: Tuple[int, int] = field(default_factory=lambda: (40, 43))
+    num_pos: Tuple[int, int] = field(default_factory=lambda: (38, 40))
+    chan_pos: Tuple[int, int] = field(default_factory=lambda: (34, 38))
+    res0_pos: Tuple[int, int] = field(default_factory=lambda: (32, 34))
+    data_pos: Tuple[int, int] = field(default_factory=lambda: (0, 32))
 
 @dataclass
 class UartConfig:

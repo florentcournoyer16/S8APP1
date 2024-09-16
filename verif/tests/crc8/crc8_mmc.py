@@ -41,8 +41,8 @@ class CRC8MMC(BaseMMC):
     # This example might not work every time.
     async def _checker(self) -> None:
         while True:
-            # dummy await, allows to run without checker implementation and verify monitors
-            await ClockCycles(self._logicblock.clk, 1000, rising=True)
+            # # dummy await, allows to run without checker implementation and verify monitors
+            # await ClockCycles(self._logicblock.clk, 1000, rising=True)
 
             mon_samples: List[Dict[str, int]] = []
             while True:
