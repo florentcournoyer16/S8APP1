@@ -90,7 +90,7 @@ class BaseEnvironment:
     async def _test(self, name):
         raise NotImplementedError("Override this method in daughter class")
 
-    async def run(self, name:str='') -> None:
+    async def run(self, names:list[str]=['']) -> None:
         self._log.info("Starting test: %s", self._test_name)
         self._gen_config()
         self._build_env()
@@ -99,7 +99,7 @@ class BaseEnvironment:
             mmc.start()
         await self._reset()
         self._load_config()
-        await self._test(name=name)
+        await self._test(names=names)
         for mmc in self._mmc_list:
             mmc.stop()
         self._uart_agent.stop_uart_rx_listenner()

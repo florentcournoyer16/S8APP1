@@ -124,11 +124,11 @@ string tdc_2_1_name = "TDC.2.1"; string tdc_2_1_description = "cov_hasEvent is a
 // ------------------------------------------------------
 
 property prop_hasEvent_after_trigger_fell;
-	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) seq_glitchless_fell_trigger |-> ##[0:199] $rose(cov_hasEvent);
+	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) seq_glitchless_fell_trigger |-> ##[0:200] $rose(cov_hasEvent);
 endproperty
 
 property prop_hasEvent_after_trigger_fell_;
-	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) seq_glitchless_fell_trigger  ##[0:199] $rose(cov_hasEvent);
+	@(posedge cov_clk) disable iff(cov_reset || !cov_enable) seq_glitchless_fell_trigger  ##[0:200] $rose(cov_hasEvent);
 endproperty
 
 ass_hasEvent_after_trigger_fell: assert property(prop_hasEvent_after_trigger_fell) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", tdc_2_1_name, tdc_2_1_description); 
