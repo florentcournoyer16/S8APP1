@@ -1,16 +1,4 @@
 Cadence Verisium Manager(64): 23.03-s002: (c) Copyright 1995-2023 Cadence Design Systems Inc - Simulator version: 23.09-s006 - Coverage engine version: 23.09-s006
 Starting gui mode
 vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_11_00_57_6283 started.
-vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_11_14_11_3342 started.
-vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_11_45_19_5958 started.
-vmanager: *I,MERGL1: The merged icc coverage cache was not reused due to different configuration or set of runs.
-vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_11_57_50_3088 started.
-vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_12_02_55_6574 started.
-vmanager: *I,MERGL1: The merged icc coverage cache was not reused due to different configuration or set of runs.
-vmanager: *I,runner.startingSession: Starting session /home/norc2802/Bureau/S8/4_APP1_PROB/S8APP1/verif/tests/example.vsif
-vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_12_06_21_0264 started.
+vmanager: *I,runner.sessionStarted: Session example_session.norc2802.24_09_16_12_57_51_6736 started.

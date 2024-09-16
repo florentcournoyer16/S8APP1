@@ -30,4 +30,6 @@ group example_group {
     test tests_tdc_SA_4 {count : 1;};
     test tests_tdc_SD_1 {count : 1;};
     test tests_tdc_SD_2 {count : 1;};
+    test tests_crc8_SA_5 {count : 1;};
+    test tests_crc8_SD_3 {count : 1;};
 };

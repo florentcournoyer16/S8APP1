@@ -8,6 +8,8 @@ from base_model import BaseModel, RegAddr
 from cocotb.triggers import ClockCycles, Timer
 from random import randint, seed
 from cocotb import start, Coroutine, Task, start_soon
+from crc8.crc8_mmc import CRC8MMC
+from reg_bank.reg_bank_mmc import RegBankMMC
 from cocotb.log import SimLog
 
 INTRPLT_DLY = 3000
@@ -44,6 +46,14 @@ class TDCEnvironment(BaseEnvironment):
             model=BaseModel(),
             logicblock_instance=self._dut.inst_tdc_channel_1,
             channel=TDCChannel.CHAN1
+        ))
+        self._mmc_list.append(CRC8MMC(
+            model=BaseModel(),
+            logicblock_instance=self._dut.inst_packet_merger.inst_crc_calc
+        ))
+        self._mmc_list.append(RegBankMMC(
+            model=BaseModel(),
+            logicblock_instance=self._dut.registers_dut
         ))
 
     async def _test(self, names : list[str]) -> None:

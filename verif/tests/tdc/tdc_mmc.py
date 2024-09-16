@@ -13,6 +13,7 @@ from tdc.tdc_monitor import TDCInputMonitor, TDCOutputMonitor
 from base_model import BaseModel
 from base_uart_agent import TDCChannel
 
+
 class TDCMMC(BaseMMC):
     """
     Reusable checker of a checker instance

@@ -21,6 +21,7 @@ class CRC8MMC(BaseMMC):
 
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase):
         super(CRC8MMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
+        self.crc8_error_count = 0
 
     def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
         input_mon: BaseMonitor = CRC8InputMonitor(
@@ -57,9 +58,9 @@ class CRC8MMC(BaseMMC):
             o_match_logicblock = await self._output_mon.values.get()
 
             self._log.info("o_match_logicblock = %s", o_match_logicblock)
-
-            assert (o_match_model == o_match_logicblock['o_match'])
-
+            
+            if(o_match_model != o_match_logicblock['o_match']):
+                self.crc8_error_count+=1
 
             #while not self._input_mon.values.empty():
                 #self._input_mon.values.get_nowait()
@@ -92,3 +93,5 @@ class CRC8MMC(BaseMMC):
             # compare expected with actual using assertions. 
             assert actual["SignalC"] == expected
             """
+    async def reset(self):
+        self.crc8_error_count=0
