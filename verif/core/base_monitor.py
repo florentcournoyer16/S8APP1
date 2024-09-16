@@ -13,21 +13,11 @@ from cocotb.log import SimLog
 
 
 class BaseMonitor:
-    """
-    Reusable Monitor of one-way control flow (data/valid) streaming data interface
-
-    Args
-        clk: clock signal
-        valid: control signal noting a transaction occured
-        datas: named handles to be sampled when transaction occurs
-    """
-
     def __init__(
-        self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase], logger_name: str
+        self, clk: SimHandleBase, datas: Dict[str, SimHandleBase], logger_name: str
     ):
         self.values = Queue[Dict[str, int]]()
         self._clk = clk
-        self._valid = valid
         self._datas = datas
         self._coro = None  # is monitor running? False if "None"
 

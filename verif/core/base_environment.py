@@ -29,13 +29,11 @@ class BaseEnvironment:
         dut: HierarchyObject,
         dut_config: DutConfig,
         uart_config: UartConfig,
-        test_name: str,
         logger_name: str,
     ):
         self._dut: HierarchyObject = dut
         self.dut_config: DutConfig = dut_config
         self._uart_agent: BaseUartAgent = self._set_uart_agent(uart_config)
-        self._test_name: str = test_name
         self._mmc_list: List[BaseMMC] = []
         self._log = SimLog("cocotb.%s" % logger_name)
 
@@ -78,7 +76,7 @@ class BaseEnvironment:
             dut_clk=self._dut.clk,
         )
 
-    async def _reset(self) -> None:
+    async def reset_dut(self) -> None:
         self._dut.reset.value = 1
         await start(Clock(self._dut.clk, 10, units="ns").start())
         await ClockCycles(self._dut.clk, 10, rising=True)
@@ -87,17 +85,16 @@ class BaseEnvironment:
     def _load_config(self) -> None:
         pass
 
-    async def _test(self, name):
+    async def _test(self, names: List[str] = []):
         raise NotImplementedError("Override this method in daughter class")
 
-    async def run(self, names:list[str]=['']) -> None:
-        self._log.info("Starting test: %s", self._test_name)
+    async def run(self, names: List[str] = []) -> None:
         self._gen_config()
         self._build_env()
         self._uart_agent.start_uart_rx_listenner()
         for mmc in self._mmc_list:
             mmc.start()
-        await self._reset()
+        await self.reset_dut()
         self._load_config()
         await self._test(names=names)
         for mmc in self._mmc_list:

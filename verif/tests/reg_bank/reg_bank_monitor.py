@@ -6,7 +6,7 @@ from cocotb.handle import SimHandleBase
 
 class RegBankInputMonitor(BaseMonitor):
     def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_enable: SimHandleBase, datas: Dict[str, SimHandleBase]):
-        super(RegBankInputMonitor, self).__init__(clk, read_enable, datas, logger_name=type(self).__qualname__)
+        super(RegBankInputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
         self.read_enable: SimHandleBase = read_enable
         self.write_enable: SimHandleBase = write_enable
 
@@ -22,7 +22,7 @@ class RegBankInputMonitor(BaseMonitor):
 
 class RegBankOutputMonitor(BaseMonitor):
     def __init__(self, clk: SimHandleBase, read_enable: SimHandleBase, write_ack: SimHandleBase, datas: Dict[str, SimHandleBase]):
-        super(RegBankOutputMonitor, self).__init__(clk, read_enable, datas, logger_name=type(self).__qualname__)
+        super(RegBankOutputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
         self._read_enable = read_enable
         self._write_ack = write_ack
         self.read_event: Event = Event()

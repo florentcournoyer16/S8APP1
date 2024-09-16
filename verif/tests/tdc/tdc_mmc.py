@@ -3,10 +3,9 @@
 
 # adapted from https://github.com/cocotb/cocotb/blob/stable/1.9/examples/matrix_multiplier/tests/test_matrix_multiplier.py
 
-from typing import Dict, List
+from typing import Dict, Tuple
 
 from cocotb.handle import SimHandleBase
-from cocotb.triggers import ClockCycles
 from base_monitor import BaseMonitor
 from base_mmc import BaseMMC
 from tdc.tdc_monitor import TDCInputMonitor, TDCOutputMonitor
@@ -15,13 +14,6 @@ from base_uart_agent import TDCChannel
 
 
 class TDCMMC(BaseMMC):
-    """
-    Reusable checker of a checker instance
-
-    Args
-        logicblock_instance: handle to an instance of a logic block
-    """
-
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase, channel: TDCChannel):
         self._channel: TDCChannel = channel
         self.error_pulse_width = 0
@@ -29,17 +21,17 @@ class TDCMMC(BaseMMC):
         self.smp_count = 0
         super(TDCMMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__+'.CHAN'+str(self._channel.value))
 
-    def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
+    def _set_monitors(self) -> Tuple[BaseMonitor, BaseMonitor]:
         input_mon: BaseMonitor = TDCInputMonitor(
             clk=self._logicblock.clk,
-            valid=self._logicblock.i_trigger,
+            trigger=self._logicblock.i_trigger,
             reset=self._logicblock.reset,
             datas=dict(i_enable_channel=self._logicblock.i_enable_channel),
             channel=self._channel
         )
         output_mon: BaseMonitor = TDCOutputMonitor(
             clk=self._logicblock.clk,
-            valid=self._logicblock.o_hasEvent,
+            has_event=self._logicblock.o_hasEvent,
             reset=self._logicblock.reset,
             datas=dict(o_pulseWidth=self._logicblock.o_pulseWidth, o_timestamp=self._logicblock.o_timestamp),
             channel=self._channel

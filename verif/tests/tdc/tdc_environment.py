@@ -20,7 +20,6 @@ class TDCEnvironment(BaseEnvironment):
     ):
         super(TDCEnvironment, self).__init__(
             dut=dut,
-            test_name="TDCEnvironment",
             dut_config=dut_config,
             uart_config=uart_config,
             logger_name=type(self).__qualname__
@@ -56,7 +55,7 @@ class TDCEnvironment(BaseEnvironment):
             logicblock_instance=self._dut.registers_dut
         ))
 
-    async def _test(self, names : list[str]) -> None:
+    async def _test(self, names : List[str]) -> None:
         test_fail = 0
         test_count = 0
         for name in names:
@@ -82,7 +81,7 @@ class TDCEnvironment(BaseEnvironment):
             pulse0 = PulseConfig(rise_time=50, fall_time=61, channel=TDCChannel.CHAN0)
             await self.trigger_agent.send_pulses([pulse0])
 
-            pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
+            await self._uart_agent.tdc_transaction(num_events=2)
             
     async def _test_SA_1(self) -> int:
         # Initialise this test logger
@@ -121,7 +120,7 @@ class TDCEnvironment(BaseEnvironment):
         
         # 4. Send the geneated pulses
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
+        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=2)
         
         
         # 5. Assert that only the first pulse has been detected by the TDC
@@ -140,7 +139,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
 
-        pkts: list[UartRxPckt] = []
+        pkts: List[UartRxPckt] = []
 
         # Enables the CH0
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
@@ -179,7 +178,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
 
-        pkts: list[UartRxPckt] = []
+        pkts: List[UartRxPckt] = []
 
         # Enables the CH0
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
@@ -202,7 +201,7 @@ class TDCEnvironment(BaseEnvironment):
             timestamp += rand_fell-41 + INTRPLT_DLY
         
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=18)
+        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=18)
 
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
@@ -219,7 +218,7 @@ class TDCEnvironment(BaseEnvironment):
         test_log = SimLog("cocotb.%s" % test_name)
         test_log.info("Starting %s" % test_name)
 
-        pkts: list[UartRxPckt] = []
+        pkts: List[UartRxPckt] = []
 
         # Enables the CH0
         response_ch0: UartRxPckt = await self._uart_agent.transaction(
@@ -251,7 +250,7 @@ class TDCEnvironment(BaseEnvironment):
         start_soon(self.trigger_agent.send_pulses(rand_pulses, units='ns'))
 
         # Waiting for the DUT to transeive the TDC interpolation 
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=20)
+        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=20)
 
         test_log.info("Finished %s" % test_name)
         self.error_handling(test_log)
@@ -280,7 +279,7 @@ class TDCEnvironment(BaseEnvironment):
 
         Timer(20, units='us')
 
-        pkts: list[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=3)
+        pkts: List[UartRxPckt] = await self._uart_agent.tdc_transaction(num_events=3)
 
         self._dut.sipms[0].value = 0
 

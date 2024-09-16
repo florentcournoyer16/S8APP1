@@ -13,7 +13,7 @@ class CRC8Environment(BaseEnvironment):
         self, dut: HierarchyObject, dut_config: DutConfig, uart_config: UartConfig,
     ):
         super(CRC8Environment, self).__init__(
-            dut=dut, test_name="CRC8Environment",
+            dut=dut,
             dut_config=dut_config,
             uart_config=uart_config,
             logger_name=type(self).__qualname__

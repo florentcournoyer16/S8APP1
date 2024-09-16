@@ -13,7 +13,6 @@ class RegBankEnvironment(BaseEnvironment):
     ):
         super(RegBankEnvironment, self).__init__(
             dut=dut,
-            test_name="RegBankEnvironment",
             dut_config=dut_config,
             uart_config=uart_config,
             logger_name=type(self).__qualname__
@@ -34,7 +33,7 @@ class RegBankEnvironment(BaseEnvironment):
             logicblock_instance=self._dut.registers_dut
         ))
 
-    async def _test(self, names:List[str]) -> None:
+    async def _test(self, names: List[str]) -> None:
         test_fail = 0
         test_count = 0
         for name in names:

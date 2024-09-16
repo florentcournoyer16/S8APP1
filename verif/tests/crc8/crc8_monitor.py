@@ -6,7 +6,8 @@ from typing import Dict
 
 class CRC8InputMonitor(BaseMonitor):
     def __init__(self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase]):
-        super(CRC8InputMonitor, self).__init__(clk, valid, datas, logger_name=type(self).__qualname__)
+        super(CRC8InputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
+        self._valid = valid
 
     async def _run(self) -> None:
         while True:
@@ -20,7 +21,8 @@ class CRC8InputMonitor(BaseMonitor):
 
 class CRC8OutputMonitor(BaseMonitor):
     def __init__(self, clk: SimHandleBase, valid: SimHandleBase, datas: Dict[str, SimHandleBase]):
-        super(CRC8OutputMonitor, self).__init__(clk, valid, datas, logger_name=type(self).__qualname__)
+        super(CRC8OutputMonitor, self).__init__(clk, datas, logger_name=type(self).__qualname__)
+        self._valid = valid
 
     async def _run(self) -> None:
         while True:

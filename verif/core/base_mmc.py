@@ -16,12 +16,6 @@ from logging import Logger
 from base_model import BaseModel
 
 class BaseMMC:
-    """
-    Reusable checker of a checker instance
-
-    Args
-        logicblock_instance: handle to an instance of a logic block
-    """
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase, logger_name: str):
         self._model = model
         self._logicblock: SimHandleBase = logicblock_instance
@@ -52,5 +46,5 @@ class BaseMMC:
     async def _checker(self) -> None:
         raise NotImplementedError("Override this method in daughter class")
 
-    async def reset(self):
-        return
+    async def reset_mmc(self):
+        raise NotImplementedError("Override this method in daughter class")

@@ -11,13 +11,6 @@ from base_monitor import BaseMonitor
 from base_model import BaseModel
 
 class RegBankMMC(BaseMMC):
-    """
-    Reusable checker of a checker instance
-
-    Args
-        logicblock_instance: handle to an instance of a logic block
-    """
-
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase):
         super(RegBankMMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
         self.error_count = 0

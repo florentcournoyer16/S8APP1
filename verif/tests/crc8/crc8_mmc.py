@@ -3,27 +3,20 @@
 
 # adapted from https://github.com/cocotb/cocotb/blob/stable/1.9/examples/matrix_multiplier/tests/test_matrix_multiplier.py
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from cocotb.handle import SimHandleBase
-from cocotb.triggers import ClockCycles
 from crc8.crc8_monitor import CRC8OutputMonitor, CRC8InputMonitor
 from base_mmc import BaseMMC
 from base_monitor import BaseMonitor
 from base_model import BaseModel
 
 class CRC8MMC(BaseMMC):
-    """
-    Reusable checker of a checker instance
-
-    Args
-        logicblock_instance: handle to an instance of a logic block
-    """
 
     def __init__(self, model: BaseModel, logicblock_instance: SimHandleBase):
         super(CRC8MMC, self).__init__(model=model, logicblock_instance=logicblock_instance, logger_name=type(self).__qualname__)
         self.crc8_error_count = 0
 
-    def _set_monitors(self) -> tuple[BaseMonitor, BaseMonitor]:
+    def _set_monitors(self) -> Tuple[BaseMonitor, BaseMonitor]:
         input_mon: BaseMonitor = CRC8InputMonitor(
             clk=self._logicblock.clk,
             valid=self._logicblock.i_valid,
@@ -68,30 +61,5 @@ class CRC8MMC(BaseMMC):
             #while not self._output_mon.values.empty():
                 #continue
 
-            """
-            Récupérer toutes les valeurs dans une Queue:
-            SamplesList = []
-            while(not self.mon.values.empty()):
-                SamplesList.append(self.mon.values.get_nowait())
-            
-            Prendre la valeur d'un signal, au nième élément seulement
-            SamplesList[N]["NomDictionnaire"]
-            
-            Prendre la valeur d'un signal, au nième élément, et changer son type pour un entier
-            SamplesList[N]["NomDictionnaire"].integer
-                                        
-            Extraire toutes les valeurs d'un signal d'une telle liste:
-            SignalSamples = [d['NomSignal'] for d in SamplesList]
-            --> depuis https://stackoverflow.com/questions/7271482/getting-a-list-of-values-from-a-list-of-dicts
-            
-            Même chose, mais en changeant aussi les valeur d'un bus pour des entiers
-            ValueList = [d['NomSignal'].integer for d in expected_inputs]
-            
-            Lire une valeur dès que disponible, attendre sinon
-            actual = await self.mon.values.get()
-
-            # compare expected with actual using assertions. 
-            assert actual["SignalC"] == expected
-            """
     async def reset(self):
         self.crc8_error_count=0
