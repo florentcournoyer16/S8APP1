@@ -136,5 +136,14 @@ class BaseModel():
         if address in [RegAddr.TDC_THRESH]:
             self._register_bank[hex(address.value)] = write_data
             write_ack = 1
+        if address in [RegAddr.EN_COUNT_RATE, RegAddr.EN_EVENT_COUNT_RATE, RegAddr.SRC_SEL]:
+            self._register_bank[hex(address.value)] = write_data & 0x00000001
+            write_ack = 1
+        if address in [RegAddr.DATA_MODE, RegAddr.BIAS_MODE]:
+            self._register_bank[hex(address.value)] = write_data & 0x00000003
+            write_ack = 1
+        if address in [RegAddr.CHANNEL_EN_BITS]:
+            self._register_bank[hex(address.value)] = write_data & 0x0000FFFF
+            write_ack = 1
         return (write_ack, read_data)
             
