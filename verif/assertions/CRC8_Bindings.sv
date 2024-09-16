@@ -169,7 +169,7 @@ property prop_done_without_reset;
 endproperty
 
 property prop_done_without_reset_;
-    (cov_done && !cov_reset) ##1 cov_done
+    (cov_done && !cov_reset) ##1 cov_done;
 endproperty
 
 ass_done_without_reset: assert property(prop_done_without_reset) else $display($stime,,, "\t %-10s \t %-80s \t FAIL", crc8_5_2_name, crc8_5_2_description); 

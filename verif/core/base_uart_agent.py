@@ -120,9 +120,9 @@ class BaseUartAgent:
 
         return pkt
 
-    async def tdc_transaction(self, num_events: int = 2, timeout_cycles: int = 1000, retries: int = 60) -> list[UartRxPckt]:
+    async def tdc_transaction(self, num_events: int = 1, timeout_cycles: int = 1000, retries: int = 60) -> list[UartRxPckt]:
         response: Coroutine = await start(self._wait_for_tdc(num_events, timeout_cycles, retries))
-        rx_pkts: tuple[UartRxPckt] = await response
+        rx_pkts: list[UartRxPckt] = await response
         return rx_pkts
 
     async def _wait_for_tdc(self, num_of_events: int, timeout_cycles: int, retries: int ) -> list[UartRxPckt]:
@@ -135,17 +135,22 @@ class BaseUartAgent:
             else:
                 await ClockCycles(self._dut_clk, timeout_cycles, rising=True)
                 try_counter += 1
-            
+        
+        for pkt in pkts:
+            pkt.log_pkt()
+        
+        self._log.info("Nb of received pulse from TDC: %s ", str(len(pkts)))
+
         if try_counter == retries:
             self._log.error(
                 "Timeout after a wait of %d clock cycles",
                 int(timeout_cycles * retries)
             )
-            return None
+            return pkts
 
         self._log.info("After a wait of %s clock cycles, received message(s):", str(timeout_cycles * try_counter))
-        for pkt in pkts:
-            pkt.log_pkt()
+        #for pkt in pkts:
+        #    pkt.log_pkt()
 
         return pkts
 

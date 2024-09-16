@@ -46,36 +46,50 @@ class BaseModel():
         while True:
             await i_trig_rising.wait()
             rising_timestamp = get_sim_time(units='ps')
-            await i_trig_falling.wait()
-            falling_timestamp = get_sim_time(units='ps')
+            return await self._tdc_falling_edge_monitoring(
+                rising_timestamp=rising_timestamp,
+                i_trig_rising=i_trig_rising,
+                i_trig_falling=i_trig_falling
+            )
 
-            pulse_width = falling_timestamp - rising_timestamp
-            if pulse_width < 20*10**3:
-                self._log.info("20ns or less glitch detected")
-                continue
+    async def _tdc_falling_edge_monitoring(self, rising_timestamp: int, i_trig_rising: Event, i_trig_falling: Event) -> tuple[int, int]:
+        await i_trig_falling.wait()
+        falling_timestamp = get_sim_time(units='ps')
 
-            while True:
-                timeout_or_rise: Optional[Union[Timer, Event]] = await First(Timer(20, units='ns'), i_trig_rising.wait())
+        pulse_width = falling_timestamp - rising_timestamp
+        if pulse_width < 20*10**3:
+            self._log.info("20ns or less glitch detected")
+            return await self.tdc(
+                i_trig_rising=i_trig_rising,
+                i_trig_falling=i_trig_falling
+            )
 
-                # If we waited for 20ns
-                if isinstance(timeout_or_rise, Timer):
+        timeout_or_rise: Optional[Union[Timer, Event]] = await First(Timer(19, units='ns'), i_trig_rising.wait())
 
-                    timestamp = rising_timestamp % (171 * 10 ** 9)  # Wrap timestamps @ 171ms
+        # If we waited for 20ns
+        if isinstance(timeout_or_rise, Timer):
 
-                    # Cap pulse width to 50us
-                    if pulse_width > 50 * 10 ** 6:
-                        pulse_width = 50 * 10 ** 6
+            timestamp = rising_timestamp % (171 * 10 ** 9)  # Wrap timestamps @ 171ms
 
-                    # self._log.info("initial_timestamp = %s", initial_timestamp)
-                    # self._log.info("rising_timestamp = %s", rising_timestamp)
-                    # self._log.info("falling_timestamp = %s", falling_timestamp)
+            # Cap pulse width to 50us
+            if pulse_width > 50 * 10 ** 6:
+                pulse_width = 50 * 10 ** 6
 
-                    # self._log.info("pulse_width = %s", pulse_width)
-                    # self._log.info("timestamp = %s", timestamp)
+            #self._log.info("initial_timestamp = %s", initial_timestamp)
+            #self._log.info("rising_timestamp = %s", rising_timestamp)
+            #self._log.info("falling_timestamp = %s", falling_timestamp)
 
-                    return (int(pulse_width / 40), int(timestamp / 40))
+            #self._log.info("pulse_width = %s", pulse_width)
+            #self._log.info("timestamp = %s", timestamp)
 
-                self._log.info("20ns or less glitch detected")
+            return (int(pulse_width / 40), int(timestamp / 40))
+        else:
+            self._log.info("20ns or less glitch detected")
+            return await self._tdc_falling_edge_monitoring(
+                rising_timestamp=rising_timestamp,
+                i_trig_rising=i_trig_rising,
+                i_trig_falling=i_trig_falling
+            )
             
 
             
